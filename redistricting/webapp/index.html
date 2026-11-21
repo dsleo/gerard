@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#e7ddc7">
+<title>La France politique · Aujourd’hui</title>
+<link rel="preconnect" href="https://unpkg.com">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Special+Elite&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="atlas.css">
+</head>
+<body>
+<div class="poster">
+<i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+<div class="title-band">
+<h1 id="poster-title"><span class="title-prefix">La France politique</span><span class="time-switch" role="group" aria-label="Choisir la carte"><button id="view-today" type="button" aria-pressed="true">Aujourd’hui</button><button id="view-tomorrow" type="button" aria-pressed="false">Demain ?</button></span></h1>
+</div>
+<main class="map-frame" id="atlas" aria-label="Carte politique des circonscriptions législatives métropolitaines">
+<div id="map" aria-label="Carte interactive des circonscriptions"></div>
+<div class="map-round-controls"><div class="slide-switch" id="round-switch" role="group" aria-label="Tour de l’élection"><span class="slide-thumb" aria-hidden="true"></span><button id="round-first" type="button" aria-pressed="false">1er tour 2024</button><button id="round-second" type="button" aria-pressed="true">2nd tour 2024</button></div></div>
+<div class="party-legend" id="party-legend" role="list" aria-label="Familles politiques"></div>
+<button id="recenter-map" class="map-control recenter" type="button" title="Recentrer la carte" aria-label="Recentrer la carte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><circle cx="12" cy="12" r="4"/></svg></button>
+</main>
+</div>
+<section class="results" id="results" aria-labelledby="results-title" hidden>
+<div class="results-head"><div><div class="results-kicker">Équilibre et limites territoriales</div><h2 id="results-title">Une carte plus équilibrée ?</h2></div></div>
+<div class="territory-grid" id="territory-grid"></div>
+<section class="mmd-section" aria-labelledby="mmd-title"><h3 id="mmd-title">Comment la répartition des voix change ?</h3><p class="mmd-intro">Des voix réparties partout, ou concentrées dans quelques bastions ? <button class="info-button" id="mmd-info" type="button" aria-label="Comprendre la répartition des voix" data-tooltip="Comprendre cet indicateur" aria-describedby="info-tooltip" aria-haspopup="dialog" aria-controls="mmd-dialog"><span class="info-glyph" aria-hidden="true">i</span></button></p><div class="mmd-grid" id="mmd-grid" aria-label="Variation du MMD par bloc, en points"></div></section>
+<section class="assembly-section" aria-labelledby="round2-title"><div class="round2-head"><div class="section-title"><h3 id="round2-title">Second tour</h3><button class="info-button" id="round2-info" type="button" aria-label="Comment estimer le second tour ?" data-tooltip="Comment le second tour est estimé" aria-describedby="info-tooltip" aria-haspopup="dialog" aria-controls="round2-dialog"><span class="info-glyph" aria-hidden="true">i</span></button></div></div>
+<div class="round2-assembly"><svg id="hemicycle" viewBox="0 0 237 164" role="group" aria-label="Projection des sièges par bloc"></svg><div class="assembly-tooltip" id="assembly-tooltip" role="status" aria-live="polite" hidden></div></div>
+<div class="assembly-controls"><div class="slide-switch assembly-switch" id="assembly-switch" role="group" aria-label="Comparer les hémicycles"><span class="slide-thumb" aria-hidden="true"></span><button id="assembly-current" type="button" aria-pressed="false">Assemblée actuelle</button><button id="assembly-projected" type="button" aria-pressed="true">Projection</button></div></div>
+</section>
+
+</section>
+<footer class="app-footer"><a class="footer-brand" href="./">La France politique<span>Un autre découpage, les mêmes voix.</span></a><nav aria-label="À propos du projet"><a href="method.html">Comment ça marche <span aria-hidden="true">↗</span></a><a href="method.html#sources">Sources</a></nav></footer>
+<dialog class="info-dialog" id="mmd-dialog" aria-labelledby="mmd-dialog-title">
+<form method="dialog"><button class="dialog-close" aria-label="Fermer la formule du MMD" autofocus>×</button></form>
+<h2 id="mmd-dialog-title">La formule du MMD</h2>
+<p>Pour un bloc <em>b</em>, on note <em>s<sub>b,i</sub></em> son pourcentage de voix dans la circonscription <em>i</em>, parmi les <em>n</em> circonscriptions avec des données disponibles.</p>
+<div class="math-display"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="MMD du bloc b : moyenne de ses pourcentages locaux moins leur médiane"><mrow><msub><mi mathvariant="normal">MMD</mi><mi>b</mi></msub><mo>=</mo><mfrac><mn>1</mn><mi>n</mi></mfrac><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msub><mi>s</mi><mrow><mi>b</mi><mo>,</mo><mi>i</mi></mrow></msub><mo>−</mo><mi mathvariant="normal">médiane</mi><mrow><mo>(</mo><mrow><msub><mi>s</mi><mrow><mi>b</mi><mo>,</mo><mn>1</mn></mrow></msub><mo>,</mo><mo>…</mo><mo>,</mo><msub><mi>s</mi><mrow><mi>b</mi><mo>,</mo><mi>n</mi></mrow></msub></mrow><mo>)</mo></mrow></mrow></math></div>
+<p>Chaque circonscription a le même poids. Pour un nombre pair de scores, la médiane est la moyenne des deux valeurs centrales.</p>
+<p>Les valeurs affichées sont les variations, en points :</p><div class="math-display"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" aria-label="Variation du MMD : valeur proposée moins valeur actuelle"><mrow><msub><mrow><mo>Δ</mo><mi mathvariant="normal">MMD</mi></mrow><mi>b</mi></msub><mo>=</mo><msub><mi mathvariant="normal">MMD</mi><mi>b</mi></msub><mrow><mo>(</mo><mtext>proposition</mtext><mo>)</mo></mrow><mo>−</mo><msub><mi mathvariant="normal">MMD</mi><mi>b</mi></msub><mrow><mo>(</mo><mtext>carte actuelle</mtext><mo>)</mo></mrow></mrow></math></div>
+<p><a href="method.html#mmd">En savoir plus sur le MMD ↗</a></p>
+</dialog>
+<dialog class="info-dialog" id="round2-dialog" aria-labelledby="round2-method-title">
+<form method="dialog"><button class="dialog-close" aria-label="Fermer l’explication du second tour" autofocus>×</button></form>
+<div class="round2-method"><h2 id="round2-method-title">Comment estimer le second tour ?</h2><div class="method-steps">
+<div class="method-step"><span class="step-number">01</span><b>Replacer les votes</b><p>Les voix de 2024 sont réparties sur les nouvelles limites.</p></div>
+<div class="method-step"><span class="step-number">02</span><b>Comparer les duels</b><p>Les deux blocs en tête sont comparés à des duels similaires de 2024.</p></div>
+<div class="method-step"><span class="step-number">03</span><b>Compter les sièges</b><p>Un point représente un siège. Au survol : le total du bloc et la plage de sièges simulée.</p></div></div></div><p class="dialog-more"><a href="method.html#second-tour">Comment ça marche ↗</a></p>
+</dialog>
+<div id="info-tooltip" class="info-tooltip" role="tooltip" hidden></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="atlas.js"></script>
+</body>
+</html>

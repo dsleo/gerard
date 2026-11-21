@@ -1,0 +1,31 @@
+# Local environments, caches, credentials, and editor state.
+.DS_Store
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.coverage
+htmlcov/
+.env
+.env.*
+!.env.example
+.claude/
+.codex/
+.agents/
+
+# Reproducible inputs, optimization runs, and built artifacts.
+redistricting/data/
+experiments/
+_site/
+
+# Publish only the four browser snapshots used by the atlas.
+redistricting/export/*
+!redistricting/export/browser/
+redistricting/export/browser/*
+!redistricting/export/browser/current-assembly.js
+!redistricting/export/browser/election-2024.js
+!redistricting/export/browser/hemicycle-layout.js
+!redistricting/export/browser/projection-2026.js

@@ -1,0 +1,82 @@
+# config.example.yaml — copy to config/config.yaml and edit.
+# Unknown keys are an error. The file is hashed and stored in every run folder.
+
+global:
+  scenario: baseline_577          # name used in output paths
+  total_seats: 577                # 577 baseline, 400 reform scenario
+  overseas_seats_mode: fixed      # fixed | proportional   (D3)
+  fixed_seats_overseas: 19        # COM (8) + seats for French abroad (11)
+  census_year: 2024
+  random_seed: 42
+  output_dir: runs/
+
+allocation:
+  method: dhondt                  # dhondt | webster       (D8)
+  min_seats_per_dept: 1           # constitutional floor
+  compare_methods: true           # Gate 2 shows both
+
+constraints:
+  population_basis: legal_residents   # only accepted value (D1)
+  hard_pop_tolerance: 0.20            # ±20% hard ceiling (D5)
+  target_pop_tolerance: 0.05          # operational target
+  subdivision_factor: 1.20            # split commune if pop > factor × P̄_d (D4); default = 1 + hard tolerance
+  whole_commune_below_population: 5000   # communes under this are never split (D4) [VERIFY L.125]
+  exceptions: []                      # D5 exception path, example below
+  # exceptions:
+  #   - dept: "2A"
+  #     max_tolerance: 0.25
+  #     justification: "Insularity; see <reference>. [VERIFY]"
+
+inputs:
+  admin_express: data/raw/admin_express/
+  population_legal: data/raw/population/          # generation-eligible
+  epci_membership: data/raw/banatic/
+  precincts_geometry: data/raw/bureaux_de_vote/   # geometry only for generation
+  electoral_quarantine: data/quarantine/electoral/   # audit only; never on the allowlist (D2, D10)
+  ferry_edges: config/ferry_edges.csv
+
+graph:
+  contiguity: rook
+  min_shared_border_m: 0.5        # edges shorter than this are dropped (numerical noise)
+
+optimization:
+  schemes: [weighted_sum_recom_sa]    # v2: nsga2, alphaevolve_weights
+  iterations: 200000
+  checkpoint_every: 5000
+  telemetry_every: 500
+  weights:                             # weighted-sum scheme only
+    pop: 0.50
+    comp: 0.30
+    epci: 0.20
+  epci_metric: count                   # count (D7, default) | count_pop_weighted (logged both ways)
+
+sampler:
+  ensemble_size: 5000                  # per department
+  seed_list: [1, 2]                    # stability check (Phase 5)
+
+audit:
+  elections: [leg_2024_t1, pres_2022_t1]
+  blocs_file: config/blocs.yaml        # start from docs/redistricting/blocs.draft.yaml
+  mappings_to_run: [coarse, fine]      # sensitivity (03 §5)
+  round2_model: r2_heuristic_v1        # D11; validated against 2024 official round-2 results
+  round2_validation:
+    reference_election: leg_2024         # official constituency results, both rounds
+    min_winner_bloc_match: 0.90          # threshold set before running; placeholder, to agree
+    if_below_threshold: add_transfer_rule
+  qualification_threshold: 0.125       # share of registered voters
+  uniform_swing_points: [-5, -3, -2, -1, 0, 1, 2, 3, 5]
+  ci_interval: [0.05, 0.95]
+  metrics: [efficiency_gap, mean_median, seat_vote_response, proportionality_gap, shut_out]
+
+gates:
+  interactive: false                   # true pauses at Gate 2 for approval
+  gate2_approval_file: approval.json
+
+viz:
+  backend: kepler                      # kepler | folium
+  current_boundaries_source: "INSEE simplified constituency map 2022 (reference context only; D34); exact mapping remains unavailable under O7/O10"
+
+manual_overrides:
+  forced_edges:
+    - ["17019", "17369"]               # La Rochelle <-> Île de Ré (ferry/bridge)
+  locked_assignments: {}               # {"commune_insee": district_id}; checked for feasibility before optimization

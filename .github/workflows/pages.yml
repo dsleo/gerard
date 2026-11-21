@@ -1,0 +1,44 @@
+name: Publish atlas to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Check application JavaScript
+        run: |
+          node --check redistricting/webapp/atlas.js
+          node --check redistricting/webapp/method.js
+      - name: Package saved atlas and validate local links
+        run: python3 redistricting/scripts/build_pages.py
+      - name: Upload static site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Deploy site
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Verify published files against this release
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: python3 redistricting/scripts/verify_pages.py "$PAGE_URL" --attempts 5
