@@ -35,3 +35,12 @@ def test_saved_scenarios_match_their_selected_maps_and_assembly_totals():
         assert scenario['estimated'] + scenario['unestimated'] == 577
         assert sum(row['seats'] for row in scenario['seat_projection'].values()) == scenario['estimated']
         assert all(row['first_bloc'] in {'left','centre','right','far_right','other'} for row in scenario['districts'].values())
+
+
+def test_partisan_metrics_have_population_epci_and_mmd():
+    for scenario in payload()['scenarios'].values():
+        metrics = scenario['territorial_metrics']
+        assert metrics['population_max_abs_deviation_from_national_target'] >= 0
+        assert 0 <= metrics['epci_pooled_avoidable_ratio'] <= 1
+        assert 0 <= metrics['compactness_loss_mean_1_minus_polsby_popper'] <= 1
+        assert set(scenario['mmd_delta']) == {'left','centre','right','far_right','other'}

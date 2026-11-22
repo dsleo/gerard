@@ -1,0 +1,10 @@
+{
+  "official": 0.802770609411679,
+  "districts": 558,
+  "method": "same expanded official units and Lambert-93 Polsby-Popper audit; changed districts use original model units",
+  "scenarios": {
+    "rn": 0.812687935374169,
+    "left": 0.8130609023365942,
+    "lfi": 0.8063008741796446
+  }
+}

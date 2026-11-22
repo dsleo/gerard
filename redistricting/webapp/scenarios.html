@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#e7ddc7">
-<title>La France politique · Cartes partisanes</title>
+<title>La carte fait loi · Partisane</title>
 <link rel="stylesheet" href="vendor/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Special+Elite&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
@@ -15,26 +15,29 @@
 <div class="poster">
 <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
 <div class="title-band">
-<h1><span class="title-prefix">La France politique</span><span class="scenario-title">Cartes partisanes</span></h1>
+<h1><span class="title-prefix">La carte fait loi</span><span class="time-switch" role="group" aria-label="Choisir la carte"><button id="view-current" type="button" aria-pressed="false">Actuelle</button><button id="view-neutral" type="button" aria-pressed="false">Neutre</button><button type="button" aria-pressed="true">Partisane</button></span></h1>
 <div class="scenario-control"><label for="scenario-slider">Scénario</label><div class="scenario-slider-wrap"><input id="scenario-slider" type="range" min="0" max="2" step="1" value="0" aria-label="Scénario de découpage" aria-valuetext="Rassemblement national"><div class="scenario-ticks" aria-hidden="true"><span>RN</span><span>Gauche</span><span>LFI</span></div></div></div>
-<a class="scenario-back" href="./">Retour aux cartes</a>
+
 </div>
 <main class="map-frame" aria-label="Carte politique des circonscriptions législatives métropolitaines">
 <div id="scenario-map" aria-label="Carte interactive des circonscriptions"></div>
 <div id="map-loading" class="map-error" role="status">Chargement des cartes…</div>
 <div id="scenario-error" class="map-error" role="alert" hidden>La carte n’a pas pu être chargée. <button type="button" onclick="location.reload()">Réessayer</button></div>
 <div class="map-zoom" aria-label="Zoom de la carte"><button id="zoom-in" type="button" aria-label="Agrandir la carte">+</button><button id="zoom-out" type="button" aria-label="Réduire la carte">−</button></div>
-<div class="map-round-controls"><div class="slide-switch first-selected" id="round-switch" role="group" aria-label="Tour de l’élection"><span class="slide-thumb" aria-hidden="true"></span><button data-round="1" type="button" aria-pressed="true">1er tour 2024</button><button data-round="2" type="button" aria-pressed="false">2nd tour estimé</button></div></div>
+<div class="map-round-controls"><div class="slide-switch" id="round-switch" role="group" aria-label="Tour de l’élection"><span class="slide-thumb" aria-hidden="true"></span><button data-round="1" type="button" aria-pressed="false">1er tour 2024</button><button data-round="2" type="button" aria-pressed="true">2nd tour estimé</button></div></div>
 <div class="party-legend" id="map-legend" role="list" aria-label="Familles politiques"></div>
 <button id="recenter-map" class="map-control recenter" type="button" title="Recentrer la carte" aria-label="Recentrer la carte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><circle cx="12" cy="12" r="4"/></svg></button>
-<a href="#assembly" id="assembly-cue" class="results-cue" hidden>Voir l’hémicycle <span aria-hidden="true">↓</span></a>
+<a href="#results" id="assembly-cue" class="results-cue">Voir la comparaison <span aria-hidden="true">↓</span></a>
 </main></div>
-<section class="results scenario-results" id="assembly" aria-labelledby="assembly-title" hidden>
-<section class="assembly-section"><div class="round2-head"><div class="section-title"><h2 id="assembly-title">Blocs en tête · premier tour</h2><button class="info-button" id="scenario-info" type="button" aria-label="Comprendre ces scénarios" aria-haspopup="dialog" aria-controls="scenario-dialog"><span class="info-glyph" aria-hidden="true">i</span></button></div></div>
+<section class="results scenario-results" id="results" aria-labelledby="results-title">
+<div class="results-head"><div><div class="results-kicker">Équilibre et limites territoriales</div><h2 id="results-title">Une carte plus équilibrée ? <a class="metric-info-link" href="method.html#territoires" aria-label="Comprendre les indicateurs territoriaux">ⓘ</a></h2></div></div>
+<div class="territory-grid"><article class="metric-card neutral"><h4>Écart de population à la moyenne nationale</h4><strong>Non calculé</strong></article><article class="metric-card neutral"><h4>Circonscriptions aux formes allongées ou découpées</h4><strong>Non calculé</strong></article><article class="metric-card neutral"><h4>Fragmentation des intercommunalités</h4><strong>Non calculé</strong></article></div>
+<section class="mmd-section"><h3>Comment la répartition des voix change ?</h3><p>La variation du MMD n’est pas encore calculée pour ces cartes.</p><div class="mmd-grid" aria-label="Variation du MMD par bloc, non calculée"><article class="mmd-card"><span>Gauche</span><strong>—</strong></article><article class="mmd-card"><span>Centre</span><strong>—</strong></article><article class="mmd-card"><span>Droite républicaine</span><strong>—</strong></article><article class="mmd-card"><span>Droite nationale</span><strong>—</strong></article><article class="mmd-card"><span>Autres</span><strong>—</strong></article></div></section>
+<section class="assembly-section" id="assembly" aria-labelledby="assembly-title" hidden><div class="round2-head"><div class="section-title"><h2 id="assembly-title">Blocs en tête · premier tour</h2><button class="info-button" id="scenario-info" type="button" aria-label="Comprendre ces scénarios" aria-haspopup="dialog" aria-controls="scenario-dialog"><span class="info-glyph" aria-hidden="true">i</span></button></div></div>
 <div class="round2-assembly"><svg id="hemicycle" viewBox="0 0 237 164" role="group" aria-label="Blocs en tête par circonscription"></svg><div class="assembly-tooltip" id="assembly-tooltip" role="status" aria-live="polite" hidden></div></div>
-<p id="assembly-note" class="scenario-note">Le premier tour montre des blocs en tête, pas des sièges remportés.</p>
+<div class="assembly-controls"><div class="slide-switch assembly-switch" id="assembly-switch" role="group" aria-label="Comparer les hémicycles"><span class="slide-thumb" aria-hidden="true"></span><button id="assembly-current" type="button" aria-pressed="false">Assemblée actuelle</button><button id="assembly-projected" type="button" aria-pressed="true">Projection</button></div></div><p id="assembly-note" class="scenario-note">Le premier tour montre des blocs en tête, pas des sièges remportés.</p>
 </section></section>
-<footer class="app-footer"><a class="footer-brand" href="./">La France politique<span>Un autre découpage, les mêmes voix.</span></a><nav aria-label="À propos du projet"><a href="./">L’atlas</a><a href="method.html">Comment ça marche</a></nav></footer>
+<footer class="app-footer"><a class="footer-brand" href="./">La carte fait loi<span>Un autre découpage, les mêmes voix.</span></a><nav aria-label="À propos du projet"><a href="./">L’atlas</a><a href="method.html">Comment ça marche</a></nav></footer>
 <dialog class="info-dialog" id="scenario-dialog" aria-labelledby="scenario-dialog-title"><form method="dialog"><button class="dialog-close" aria-label="Fermer l’explication" autofocus>×</button></form><h2 id="scenario-dialog-title">Comment lire ces cartes ?</h2><p>Chaque carte favorise un camp au premier tour, à partir des votes de 2024. Les départements non modifiés conservent leurs limites officielles. Les cartes sont exploratoires et non certifiées.</p><p>Au premier tour, un point représente un bloc en tête, pas un siège gagné. Pour LFI, le calcul utilise le rattachement financier déclaré par les candidats ; la carte regroupe ensuite les voix en blocs.</p><p>Au second tour, les deux premiers blocs forment un duel hypothétique, estimé à partir de duels de 2024. Les fourchettes au survol correspondent aux 10e–90e percentiles des simulations ; elles ne couvrent pas toutes les incertitudes et peuvent exclure l’estimation centrale. Dix-huit circonscriptions restent sans estimation.</p><p><a href="method.html#second-tour">En savoir plus sur la méthode</a></p></dialog>
-<script src="vendor/leaflet.js"></script><script src="scenarios.js"></script>
+<script src="vendor/leaflet.js"></script><script src="scenarios.js?v=2"></script>
 </body></html>

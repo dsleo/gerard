@@ -216,3 +216,5 @@ button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var
 @media(max-width:760px){.department-search{top:137px;right:10px}.department-toggle{width:44px;height:44px}.department-panel{right:52px;width:min(250px,calc(100vw - 100px))}.department-search-field{min-height:44px}.department-search input{font-size:13px}}
 
 .partisan-link{display:block;width:max-content;max-width:100%;margin:5px auto 0;color:#72513f;font:13px/1.4 var(--serif);text-decoration:underline;text-underline-offset:4px}.partisan-link:hover{color:#2c2820}.partisan-link:focus-visible{outline:2px solid #a4533e;outline-offset:3px}
+
+.title-band h1 .title-prefix{display:block;margin:0 0 5px}.title-band h1 .time-switch{font-size:.65em}

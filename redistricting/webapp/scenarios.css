@@ -1,10 +1,14 @@
 /* Scenario controls use the atlas's paper, ink, and map components. */
 .scenario-title{display:inline-block;color:#3c514d}
 .scenario-control{display:flex;justify-content:center;align-items:center;gap:12px;margin:5px auto 0;color:#655b49;font:11px var(--serif)}
-.scenario-slider-wrap{width:min(250px,58vw)}
-#scenario-slider{display:block;width:100%;height:16px;margin:0;accent-color:#3c514d;cursor:pointer}
-#scenario-slider:focus-visible{outline:3px solid var(--teal);outline-offset:3px}
-.scenario-ticks{display:flex;justify-content:space-between;font:10px var(--serif);color:#756b58}
+.scenario-slider-wrap{width:min(250px,60vw);padding:2px 0 0}
+#scenario-slider,#partisan-slider{display:block;appearance:none;-webkit-appearance:none;width:calc(66.666% + 12px);height:16px;margin:0 calc(16.667% - 6px);background:transparent;cursor:pointer}
+#scenario-slider::-webkit-slider-runnable-track,#partisan-slider::-webkit-slider-runnable-track{height:2px;background:#a89a80;border-radius:2px}
+#scenario-slider::-webkit-slider-thumb,#partisan-slider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;margin-top:-5px;background:#3c514d;border:1px solid #eee8d8;border-radius:50%}
+#scenario-slider::-moz-range-track,#partisan-slider::-moz-range-track{height:2px;background:#a89a80;border-radius:2px}
+#scenario-slider::-moz-range-thumb,#partisan-slider::-moz-range-thumb{width:10px;height:10px;background:#3c514d;border:1px solid #eee8d8;border-radius:50%}
+#scenario-slider:focus-visible,#partisan-slider:focus-visible{outline:3px solid var(--teal);outline-offset:3px}
+.scenario-ticks{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;font:10px var(--serif);color:#756b58}
 .scenario-back{display:block;width:max-content;margin:5px auto 0;color:#3c514d;font:11px var(--serif);text-decoration:underline;text-underline-offset:3px}
 #scenario-map{position:absolute;inset:0;background:var(--paper)}
 .scenario-results{padding-top:0}
