@@ -29,8 +29,20 @@ jobs:
         run: |
           node --check redistricting/webapp/atlas.js
           node --check redistricting/webapp/method.js
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test dependencies
+        run: python -m pip install -e 'redistricting[dev]' playwright
+      - name: Install browser
+        run: python -m playwright install --with-deps chromium
+      - name: Run tests
+        run: python -m pytest redistricting/tests -q
       - name: Package saved atlas and validate local links
         run: python3 redistricting/scripts/build_pages.py
+      - name: Exercise the release in a browser
+        run: python redistricting/scripts/smoke_pages.py
       - name: Upload static site
         uses: actions/upload-pages-artifact@v4
         with:

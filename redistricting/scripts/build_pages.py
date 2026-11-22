@@ -49,6 +49,7 @@ def build() -> Path:
         content = content.replace('href="../../docs/', 'href="docs/')
         content = content.replace('href="../src/', 'href="source/')
         (OUTPUT / name).write_text(content, encoding="utf-8")
+    shutil.copytree(WEBAPP / "vendor", OUTPUT / "vendor")
     for name in SNAPSHOTS:
         target = OUTPUT / "export/browser" / name
         target.parent.mkdir(parents=True, exist_ok=True)
