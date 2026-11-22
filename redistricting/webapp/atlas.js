@@ -227,14 +227,14 @@ function focusDepartment(){
 function closeDepartmentOptions(){const list=$('#department-options');list.hidden=true;$('#department-query').setAttribute('aria-expanded','false');$('#department-query').removeAttribute('aria-activedescendant');activeDepartmentOption=-1}
 function renderDepartmentOptions(){
   const query=normalizeDepartment($('#department-query').value.trim()),list=$('#department-options');
-  const matches=departments.filter(item=>!query||normalizeDepartment(item.name).includes(query)||item.code.toLowerCase().includes(query));
+  const matches=departments.filter(item=>!query||normalizeDepartment(item.name+' ('+item.code+')').includes(query)||item.code.toLowerCase().includes(query));
   list.replaceChildren();activeDepartmentOption=-1;
   if(!matches.length){const empty=document.createElement('li');empty.className='department-empty';empty.textContent='Aucun département trouvé';list.append(empty)}
   matches.forEach((item,index)=>{const option=document.createElement('li');option.id='department-option-'+index;option.setAttribute('role','option');option.setAttribute('aria-selected','false');option.textContent=item.name+' ('+item.code+')';option.addEventListener('pointerdown',event=>event.preventDefault());option.addEventListener('click',()=>selectDepartment(item));list.append(option)});
   list.hidden=false;$('#department-query').setAttribute('aria-expanded','true');
 }
 function selectDepartment(item){
-  selectedDepartment=item.code;$('#department-query').value=item.name+' ('+item.code+')';$('#department-clear').hidden=false;$('#department-toggle').classList.add('has-selection');closeDepartmentPanel();
+  selectedDepartment=item.code;$('#department-query').value=item.name+' ('+item.code+')';$('#department-clear').hidden=false;$('#department-toggle').classList.add('has-selection');closeDepartmentPanel();$('#department-toggle').focus({preventScroll:true});
   applyDepartmentStyles(proposalVisible?proposalLayer:currentLayer);focusDepartment();
   const before=CURRENT.features.filter(f=>departmentCode(f)===item.code).length,summary=$('#department-summary');
   summary.hidden=false;summary.textContent=before+' sièges aujourd’hui';
