@@ -17,7 +17,7 @@
 <div class="title-band">
 <h1><span class="title-prefix">La France politique</span><span class="scenario-title">Cartes partisanes</span></h1>
 <div class="scenario-control"><label for="scenario-slider">Scénario</label><div class="scenario-slider-wrap"><input id="scenario-slider" type="range" min="0" max="2" step="1" value="0" aria-label="Scénario de découpage" aria-valuetext="Rassemblement national"><div class="scenario-ticks" aria-hidden="true"><span>RN</span><span>Gauche</span><span>LFI</span></div></div></div>
-<p class="scenario-status" id="scenario-status" role="status" aria-live="polite">Scénario favorable au RN · estimation exploratoire</p>
+<a class="scenario-back" href="./">Retour aux cartes</a>
 </div>
 <main class="map-frame" aria-label="Carte politique des circonscriptions législatives métropolitaines">
 <div id="scenario-map" aria-label="Carte interactive des circonscriptions"></div>
@@ -27,9 +27,9 @@
 <div class="map-round-controls"><div class="slide-switch first-selected" id="round-switch" role="group" aria-label="Tour de l’élection"><span class="slide-thumb" aria-hidden="true"></span><button data-round="1" type="button" aria-pressed="true">1er tour 2024</button><button data-round="2" type="button" aria-pressed="false">2nd tour estimé</button></div></div>
 <div class="party-legend" id="map-legend" role="list" aria-label="Familles politiques"></div>
 <button id="recenter-map" class="map-control recenter" type="button" title="Recentrer la carte" aria-label="Recentrer la carte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><circle cx="12" cy="12" r="4"/></svg></button>
-<a href="#assembly" class="results-cue">Voir l’hémicycle <span aria-hidden="true">↓</span></a>
+<a href="#assembly" id="assembly-cue" class="results-cue" hidden>Voir l’hémicycle <span aria-hidden="true">↓</span></a>
 </main></div>
-<section class="results scenario-results" id="assembly" aria-labelledby="assembly-title">
+<section class="results scenario-results" id="assembly" aria-labelledby="assembly-title" hidden>
 <section class="assembly-section"><div class="round2-head"><div class="section-title"><h2 id="assembly-title">Blocs en tête · premier tour</h2><button class="info-button" id="scenario-info" type="button" aria-label="Comprendre ces scénarios" aria-haspopup="dialog" aria-controls="scenario-dialog"><span class="info-glyph" aria-hidden="true">i</span></button></div></div>
 <div class="round2-assembly"><svg id="hemicycle" viewBox="0 0 237 164" role="group" aria-label="Blocs en tête par circonscription"></svg><div class="assembly-tooltip" id="assembly-tooltip" role="status" aria-live="polite" hidden></div></div>
 <p id="assembly-note" class="scenario-note">Le premier tour montre des blocs en tête, pas des sièges remportés.</p>
