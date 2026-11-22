@@ -29,3 +29,4 @@ redistricting/export/browser/*
 !redistricting/export/browser/election-2024.js
 !redistricting/export/browser/hemicycle-layout.js
 !redistricting/export/browser/projection-2026.js
+!redistricting/export/browser/partisan-scenarios.js

@@ -29,6 +29,9 @@ def test_pages_bundle_uses_only_saved_snapshots_and_project_relative_urls(tmp_pa
     assert snapshots == set(builder.SNAPSHOTS)
     assert "const DATA='export/';" in (output / "atlas.js").read_text()
     assert 'src="export/browser/projection-2026.js"' in (output / "method.html").read_text()
+    assert "const DATA='export/';" in (output / 'scenarios.js').read_text()
+    assert (output / 'scenarios.html').is_file()
+    assert 'partisan-scenarios.js' in snapshots
     assert not (output / "data").exists()
     assert not (output / "experiments").exists()
     assert not (output / ".git").exists()

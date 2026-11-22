@@ -1,7 +1,7 @@
 # Gérard · La France politique
 
 An exploratory atlas of French legislative constituencies. The application
-compares the official 2024 electoral map with a saved redistricting scenario.
+compares the official 2024 electoral map with a saved redistricting scenario and [partisan map experiments](redistricting/webapp/scenarios.html).
 [Comment ça marche](redistricting/webapp/method.html) explains the territorial
 search, ReCom, electoral estimates, and limitations.
 
@@ -28,7 +28,7 @@ python3 redistricting/scripts/build_pages.py
 ```
 
 This builds `_site/` without rerunning the optimizer or changing its results.
-The package contains the app, four saved browser snapshots, and the methodology
+The package contains the app, saved browser snapshots, and the methodology
 references. All URLs work beneath a project prefix such as `/gerard/`.
 Raw source data, local environments, and optimization runs are excluded by
 `.gitignore` and are not copied into the site.
