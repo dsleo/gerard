@@ -81,8 +81,11 @@ def build() -> Path:
         raise ValueError("Deployment HTML still refers to files outside the site root")
 
     paths = sorted(path for path in OUTPUT.rglob("*") if path.is_file())
+    # These control files belong in the artifact, but are not public URLs.
+    # In particular, Pages may return 404 for the .nojekyll marker.
+    controls = {marker, OUTPUT / ".nojekyll"}
     manifest = {str(path.relative_to(OUTPUT)): hashlib.sha256(path.read_bytes()).hexdigest()
-                for path in paths if path != marker}
+                for path in paths if path not in controls}
     (OUTPUT / "build-manifest.json").write_text(
         json.dumps({"sha256": manifest}, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8")
