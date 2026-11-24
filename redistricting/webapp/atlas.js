@@ -21,7 +21,7 @@ function renderKey(){
   $('#party-legend').innerHTML=families.map(item=>{
     const label=item.id==='other'?'Autres':item.label;
     const hatch=item.hatch?'repeating-linear-gradient(135deg,#f4ead477 0 1px,transparent 1px 5px)':'none';
-    return '<div role="listitem"><button class="key-item" type="button" aria-label="'+escHTML(label)+'" data-tooltip="'+escHTML(label)+'" aria-describedby="info-tooltip"><i class="swatch" aria-hidden="true" style="--family:'+item.color+';--hatch:'+hatch+'"></i><span class="key-name" aria-hidden="true">'+escHTML(label)+'</span></button></div>';
+    return '<div role="listitem"><span class="key-item"><i class="swatch" aria-hidden="true" style="--family:'+item.color+';--hatch:'+hatch+'"></i><span class="key-name">'+escHTML(label)+'</span></span></div>';
   }).join('');
 }
 function seatsLeftToRight(layout){const probe=document.createElementNS('http://www.w3.org/2000/svg','svg');probe.setAttribute('viewBox',layout.viewBox);probe.style.cssText='position:absolute;left:-10000px;top:0;width:1000px;height:700px;overflow:visible';const measured=layout.seats.map(seat=>{const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',seat.path);path.setAttribute('transform',seat.transform||'');probe.appendChild(path);return {seat,path}});document.body.appendChild(probe);const ordered=measured.map(({seat,path})=>{const box=path.getBBox();return {seat,x:box.x+box.width/2}}).sort((a,b)=>a.x-b.x).map(item=>item.seat);probe.remove();return ordered}
@@ -298,24 +298,35 @@ async function start(){
     CURRENT=snapshot;ELECTION=election;
     const blocs={extreme_gauche:'lfi',gauche:'left',centre:'centre',droite:'right',rn:'far_right',autres:'other'};
     ELECTION.byCode=new Map(election.features.map(f=>[String(f.properties.code),{...f.properties,bloc:blocs[f.properties.group]||'other'}]));
-    renderKey();paintCurrent(snapshot.features,true);syncRoundSwitch();populateDepartments();bindDepartmentSearch();
+    renderKey();paintCurrent(snapshot.features,true);syncRoundSwitch();populateDepartments();bindDepartmentSearch();$('#map-loading').hidden=true;$('#map').setAttribute('aria-busy','false');
     $('#round-first').addEventListener('click',async()=>{try{await ensureProjection();setMapRound(1);applyDepartmentStyles(proposalVisible?proposalLayer:currentLayer)}catch(error){toast('Les résultats du premier tour sont indisponibles.')}});$('#round-second').addEventListener('click',()=>{setMapRound(2);applyDepartmentStyles(proposalVisible?proposalLayer:currentLayer)});
     $('#recenter-map').addEventListener('click',recenterMap);$('#zoom-in').addEventListener('click',()=>map.zoomIn());$('#zoom-out').addEventListener('click',()=>map.zoomOut());
     $('#results-cue').addEventListener('click',event=>{event.preventDefault();$('#results').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});$('#results-title').setAttribute('tabindex','-1');$('#results-title').focus({preventScroll:true})});
-    $('#view-partisan').addEventListener('click',()=>showPartisan());
-    $('#footer-partisan').addEventListener('click',event=>{event.preventDefault();showPartisan();$('#atlas').scrollIntoView()});
+    $('#view-partisan').addEventListener('click',()=>explainFirst('partisan',showPartisan));
+    $('#footer-partisan').addEventListener('click',event=>{event.preventDefault();explainFirst('partisan',()=>{showPartisan();$('#atlas').scrollIntoView()})});
     $('#partisan-slider').addEventListener('input',event=>{partisanChoice=Number(event.target.value);showPartisan()});
     $('#view-today').addEventListener('click',()=>{if(proposalVisible)resetCurrent()});
-    $('#view-tomorrow').addEventListener('click',async()=>{
+    $('#view-tomorrow').addEventListener('click',()=>explainFirst('neutral',async()=>{
       if(viewMode==='neutral')return;if(viewMode==='partisan'){proposalVisible=false;if(proposalLayer)map.removeLayer(proposalLayer);proposalLayer=null}const button=$('#view-tomorrow');button.disabled=true;$('#view-today').disabled=true;button.setAttribute('aria-busy','true');
       try{await showProposal()}finally{button.disabled=false;$('#view-today').disabled=false;button.removeAttribute('aria-busy')}
-    });
+    }));
     $('#assembly-current').addEventListener('click',()=>setAssemblyView('current'));
     $('#assembly-projected').addEventListener('click',()=>setAssemblyView('projected'));
     bindInfoDialog('mmd-info','mmd-dialog');bindInfoDialog('round2-info','round2-dialog');
     if(new URLSearchParams(location.search).get('view')==='neutral') await showProposal();
     load('partisan-scenarios.js').then(data=>{PARTISAN=data}).catch(()=>{});
     bindLegendTooltip();bindHemicycleTooltip();window.addEventListener('resize',()=>{map.invalidateSize();if(selectedDepartment)focusDepartment();else recenterMap()});
-  }catch(error){console.error(error);$('#map-error').hidden=false}
+  }catch(error){console.error(error);$('#map-loading').hidden=true;$('#map').setAttribute('aria-busy','false');$('#map-error').hidden=false}
+}
+const FIRST_USE={neutral:{title:'La géographie peut-elle guider un autre découpage ?',href:'method.html#territoires'},partisan:{title:'Un découpage peut-il avantager un camp ?',href:'method.html#partisane'}};
+function explainFirst(kind,action){
+  let seen=false;try{seen=localStorage.getItem('gerard-first-use-'+kind)==='1'}catch{}
+  if(seen){action();return}
+  const content=FIRST_USE[kind],dialog=$('#first-use-dialog');
+  $('#first-use-title').textContent=content.title;
+  $('#first-use-more').href=content.href;
+  const button=$('#first-use-continue');button.onclick=()=>{try{localStorage.setItem('gerard-first-use-'+kind,'1')}catch{}dialog.close();action()};
+  dialog.onclick=event=>{if(event.target===dialog)dialog.close()};
+  dialog.showModal();
 }
 start();

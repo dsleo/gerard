@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#e7ddc7">
+<meta name="description" content="Explorez la carte des circonscriptions législatives françaises et comparez les résultats actuels à des scénarios neutres ou partisans fondés sur les votes de 2024.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="La carte fait loi · Atlas des circonscriptions législatives">
+<meta property="og:description" content="Avec les mêmes votes, que changent d’autres façons de tracer les circonscriptions ? Explorez la carte actuelle et des scénarios exploratoires.">
+<meta name="twitter:card" content="summary">
 <title>La carte fait loi · Actuelle</title>
 <link rel="stylesheet" href="vendor/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,7 +26,8 @@
 <p id="proposal-error" class="proposal-error" role="alert" hidden>La proposition est indisponible. Réessayez avec « Neutre ».</p>
 </div>
 <main class="map-frame" id="atlas" aria-label="Carte politique des circonscriptions législatives métropolitaines">
-<div id="map" aria-label="Carte interactive des circonscriptions"></div>
+<div id="map" aria-label="Carte interactive des circonscriptions" aria-busy="true"></div>
+<div id="map-loading" class="map-loading" role="status" aria-live="polite"><span class="loading-mark" aria-hidden="true"></span><span>La carte se prépare…</span></div>
 <div id="map-error" class="map-error" role="alert" hidden>La carte n’a pas pu être chargée. <button type="button" onclick="location.reload()">Réessayer</button></div>
 <div class="map-zoom" aria-label="Zoom de la carte"><button id="zoom-in" type="button" aria-label="Agrandir la carte">+</button><button id="zoom-out" type="button" aria-label="Réduire la carte">−</button></div>
 <div class="map-round-controls"><div class="slide-switch" id="round-switch" role="group" aria-label="Tour de l’élection"><span class="slide-thumb" aria-hidden="true"></span><button id="round-first" type="button" aria-pressed="false">1er tour 2024</button><button id="round-second" type="button" aria-pressed="true">2nd tour 2024</button></div></div>
@@ -62,7 +68,12 @@
 </dialog>
 <div id="info-tooltip" class="info-tooltip" role="tooltip" hidden></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
+<dialog class="info-dialog first-use-dialog" id="first-use-dialog" aria-labelledby="first-use-title">
+<h2 id="first-use-title"></h2>
+<button class="first-use-continue" id="first-use-continue" type="button">Explorer cette carte</button>
+<a class="first-use-more" id="first-use-more" href="method.html">Comment ça marche ?</a>
+</dialog>
 <script src="vendor/leaflet.js"></script>
-<script src="atlas.js?v=13"></script>
+<script src="atlas.js?v=16"></script>
 </body>
 </html>

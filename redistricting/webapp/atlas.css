@@ -214,6 +214,28 @@ button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var
 .department-empty{color:#756b58}#department-summary{display:inline-block;margin:4px 0 0;padding:5px 8px;background:#f2ead8;border:1px solid #bdb198;font:11px/1.4 var(--serif)}
 @media(max-width:760px){.department-search{top:137px;right:10px}.department-toggle{width:44px;height:44px}.department-panel{right:52px;width:min(250px,calc(100vw - 100px))}.department-search-field{min-height:44px}.department-search input{font-size:13px}}
 
+/* Publication pass: clear mobile legend, touch targets, and first-load feedback. */
+.map-loading{position:absolute;z-index:700;inset:0;display:flex;align-items:center;justify-content:center;gap:12px;background:var(--paper);color:#514a3d;font:14px/1.5 var(--serif)}
+.loading-mark{width:20px;height:20px;border:2px solid #bdb198;border-top-color:#3c514d;border-radius:50%;animation:map-spin .8s linear infinite}
+@keyframes map-spin{to{transform:rotate(360deg)}}
+.key-item{cursor:default}
+.first-use-dialog{width:min(360px,calc(100vw - 36px));padding:24px 24px 20px;text-align:center;border-color:#c8bda7;box-shadow:0 4px 18px #302c2418}
+.first-use-dialog::backdrop{background:#28251f35;backdrop-filter:none}
+.first-use-dialog h2{margin:0 auto 16px;max-width:24ch;color:#514a3d;font:600 clamp(18px,3.5vw,22px)/1.35 var(--serif)}
+.first-use-continue{display:block;min-height:40px;margin:0 auto;padding:9px 15px;border:1px solid #9c917c;background:#e5dcc9;color:#514a3d;font:500 11px/1.2 var(--display);letter-spacing:.035em}
+.first-use-continue:hover{background:#dcd1bb}
+.first-use-more{display:block;width:max-content;margin:12px auto 0;color:#756b58;font:11px/1.5 var(--serif);text-underline-offset:3px}
+@media(max-width:760px){
+  .time-switch button{min-height:44px;padding:9px 12px}
+  .map-zoom button{width:44px;height:44px}
+  .party-legend{left:8px;right:8px;bottom:8px;transform:none;width:auto;justify-content:center;flex-wrap:wrap;gap:2px 8px;padding:6px 8px;background:#e9dfcceF;border:1px solid #bdb198}
+  .party-legend>div{flex:0 0 auto}
+  .key-item{height:30px;width:auto;padding:3px 2px;gap:5px;font-size:9px}
+  .swatch{width:16px;height:12px}
+  .key-name{display:inline;color:#302c24}
+}
+@media(prefers-reduced-motion:reduce){.loading-mark{animation:none}}
+
 .partisan-link{display:block;width:max-content;max-width:100%;margin:5px auto 0;color:#72513f;font:13px/1.4 var(--serif);text-decoration:underline;text-underline-offset:4px}.partisan-link:hover{color:#2c2820}.partisan-link:focus-visible{outline:2px solid #a4533e;outline-offset:3px}
 
 .title-band h1 .title-prefix{display:block;margin:0 0 5px}.title-band h1 .time-switch{font-size:.65em}
