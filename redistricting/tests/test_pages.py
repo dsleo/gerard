@@ -29,7 +29,10 @@ def test_pages_bundle_uses_only_saved_snapshots_and_project_relative_urls(tmp_pa
     assert snapshots == set(builder.SNAPSHOTS)
     assert "const DATA='export/';" in (output / "atlas.js").read_text()
     assert 'src="export/browser/projection-2026.js?v=9"' in (output / "method.html").read_text()
-    assert 'href="atlas.css?v=11"' in (output / "index.html").read_text()
+    source_index = (builder.WEBAPP / "index.html").read_text()
+    bundled_index = (output / "index.html").read_text()
+    source_stylesheet = next(part for part in source_index.split('"') if part.startswith("atlas.css?v="))
+    assert f'href="{source_stylesheet}"' in bundled_index
     method = (output / 'method.html').read_text()
     assert 'href="index.html">← Explorer la carte' in method
     assert 'href="index.html">Revenir à la carte' in method
