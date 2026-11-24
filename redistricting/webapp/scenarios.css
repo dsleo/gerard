@@ -16,3 +16,15 @@
 .scenario-results .round2-head h2{margin:0;font:600 clamp(16px,1.8vw,22px)/1.2 var(--serif)}
 .scenario-note{text-align:center;color:#756b58;font:11px/1.5 var(--serif);margin:8px 0 0}
 @media(max-width:760px){.scenario-title{display:block}.scenario-control{margin-top:8px}.scenario-back{font-size:10px}}
+
+/* Five evenly spaced scenario stops; the first and last thumb centres align with the labels. */
+#partisan-control .scenario-slider-wrap{width:min(560px,78vw)}
+#partisan-control #partisan-slider{width:calc(80% + 12px);margin:0 calc(10% - 6px)}
+#partisan-control .scenario-ticks{grid-template-columns:repeat(5,minmax(0,1fr));font-size:10px}
+@media(max-width:600px){#partisan-control .scenario-slider-wrap{width:min(390px,76vw)}#partisan-control .scenario-ticks{font-size:9px}}
+
+/* The partisan selector sits beneath the map, without a surrounding panel. */
+.poster:has(#partisan-control:not([hidden])){grid-template-rows:max-content minmax(0,1fr) max-content}
+#partisan-control{flex-direction:column;gap:1px;margin:0 auto;color:#655b49}
+#partisan-control>label{font:11px var(--serif)}
+@media(max-width:760px){.poster:has(#partisan-control:not([hidden])){grid-template-rows:max-content minmax(480px,1fr) max-content}#partisan-control{margin:0 auto}}

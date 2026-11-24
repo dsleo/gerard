@@ -178,6 +178,7 @@ def recom_step(
     tol: float,
     rng: random.Random,
     max_tries: int = 300,
+    preferred_pair: tuple[int, int] | None = None,
 ) -> dict[str, int]:
     """One ReCom move. Returns a new plan, or the same plan if no balanced cut was found."""
     members = _district_members(plan)
@@ -195,6 +196,8 @@ def recom_step(
     if repair and rng.random() < 0.9:
         a, b = rng.choice(repair)
         max_tries = max(max_tries, 3000)  # repair moves: balanced cuts are rare, draw more trees
+    elif preferred_pair is not None and tuple(sorted(preferred_pair)) in pairs:
+        a, b = tuple(sorted(preferred_pair))
     else:
         a, b = rng.choice(pairs)
     merged = members[a] | members[b]

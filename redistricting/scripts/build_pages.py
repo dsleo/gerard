@@ -55,7 +55,7 @@ def build() -> Path:
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(BROWSER / name, target)
     shutil.copytree(ROOT / "docs/redistricting", OUTPUT / "docs/redistricting")
-    for name in ("sample/recom.py", "optimize/sa.py"):
+    for name in ("sample/recom.py", "optimize/sa.py", "sources.py"):
         target = OUTPUT / "source/redistrict" / name
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / "redistricting/src/redistrict" / name, target)

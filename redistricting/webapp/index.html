@@ -8,15 +8,15 @@
 <link rel="stylesheet" href="vendor/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Special+Elite&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="atlas.css">
-<link rel="stylesheet" href="scenarios.css">
+<link rel="stylesheet" href="atlas.css?v=11">
+<link rel="stylesheet" href="scenarios.css?v=6">
 </head>
 <body>
 <div class="poster">
 <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
 <div class="title-band">
 <h1 id="poster-title"><span class="title-prefix">La carte fait loi</span><span class="time-switch" role="group" aria-label="Choisir la carte"><button id="view-today" type="button" aria-pressed="true">Actuelle</button><button id="view-tomorrow" type="button" aria-pressed="false">Neutre</button><button id="view-partisan" type="button" aria-pressed="false">Partisane</button></span></h1>
-<div class="scenario-control" id="partisan-control" hidden><label for="partisan-slider">Scénario</label><div class="scenario-slider-wrap"><input id="partisan-slider" type="range" min="0" max="2" step="1" value="0" aria-label="Scénario partisan" aria-valuetext="Rassemblement national"><div class="scenario-ticks" aria-hidden="true"><span>RN</span><span>Gauche</span><span>LFI</span></div></div></div>
+
 <p id="map-scenario" class="map-scenario" hidden>Scénario exploratoire · votes de 2024</p>
 <p id="proposal-error" class="proposal-error" role="alert" hidden>La proposition est indisponible. Réessayez avec « Neutre ».</p>
 </div>
@@ -30,9 +30,10 @@
 <button id="recenter-map" class="map-control recenter" type="button" title="Recentrer la carte" aria-label="Recentrer la carte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><circle cx="12" cy="12" r="4"/></svg></button>
 <a href="#results" id="results-cue" class="results-cue" hidden>Voir la comparaison <span aria-hidden="true">↓</span></a>
 </main>
+<div class="scenario-control" id="partisan-control" hidden><label for="partisan-slider">Carte favorable à</label><div class="scenario-slider-wrap"><input id="partisan-slider" type="range" min="0" max="4" step="1" value="0" aria-label="Scénario partisan" aria-valuetext="Extrême gauche"><div class="scenario-ticks" aria-hidden="true"><span>Extrême gauche</span><span>Gauche</span><span>Centre</span><span>Droite</span><span>Extrême droite</span></div></div></div>
 </div>
 <section class="results" id="results" aria-labelledby="results-title" hidden>
-<div class="results-head"><div><div class="results-kicker">Équilibre et limites territoriales</div><h2 id="results-title">Une carte plus équilibrée ? <a class="metric-info-link" href="method.html#territoires" aria-label="Comprendre les indicateurs territoriaux">ⓘ</a></h2></div></div>
+<div class="results-head"><div><div class="results-kicker">Équilibre et limites territoriales</div><h2 id="results-title">Une carte plus équilibrée ? </h2></div></div>
 <div class="territory-grid" id="territory-grid"></div>
 <section class="mmd-section" aria-labelledby="mmd-title"><h3 id="mmd-title">Comment la répartition des voix change ?</h3><p class="mmd-intro">Des voix réparties partout, ou concentrées dans quelques bastions ? <button class="info-button" id="mmd-info" type="button" aria-label="Comprendre la répartition des voix" data-tooltip="Comprendre cet indicateur" aria-describedby="info-tooltip" aria-haspopup="dialog" aria-controls="mmd-dialog"><span class="info-glyph" aria-hidden="true">i</span></button></p><div class="mmd-grid" id="mmd-grid" aria-label="Variation du MMD par bloc, en points"></div></section>
 <section class="assembly-section" aria-labelledby="round2-title"><div class="round2-head"><div class="section-title"><h3 id="round2-title">Second tour</h3><button class="info-button" id="round2-info" type="button" aria-label="Comment estimer le second tour ?" data-tooltip="Comment le second tour est estimé" aria-describedby="info-tooltip" aria-haspopup="dialog" aria-controls="round2-dialog"><span class="info-glyph" aria-hidden="true">i</span></button></div></div>
@@ -41,7 +42,8 @@
 </section>
 
 </section>
-<footer class="app-footer"><a class="footer-brand" href="./">La carte fait loi<span>Un autre découpage, les mêmes voix.</span></a><nav aria-label="À propos du projet"><a href="#atlas" id="footer-partisan">Cartes partisanes</a><a href="method.html">Comment ça marche <span aria-hidden="true">↗</span></a><a href="method.html#sources">Sources</a></nav></footer>
+<footer class="app-footer"><a class="footer-brand" href="index.html">La carte fait loi<span>Un autre découpage, les mêmes voix.</span></a><nav aria-label="À propos du projet"><a href="#atlas" id="footer-partisan">Cartes partisanes</a><a href="method.html">Comment ça marche <span aria-hidden="true">↗</span></a></nav></footer>
+
 <dialog class="info-dialog" id="mmd-dialog" aria-labelledby="mmd-dialog-title">
 <form method="dialog"><button class="dialog-close" aria-label="Fermer la formule du MMD" autofocus>×</button></form>
 <h2 id="mmd-dialog-title">La formule du MMD</h2>
@@ -56,11 +58,11 @@
 <div class="round2-method"><h2 id="round2-method-title">Comment estimer le second tour ?</h2><div class="method-steps">
 <div class="method-step"><span class="step-number">01</span><b>Replacer les votes</b><p>Les voix de 2024 sont réparties sur les nouvelles limites.</p></div>
 <div class="method-step"><span class="step-number">02</span><b>Comparer les duels</b><p>Les deux blocs en tête sont comparés à des duels similaires de 2024.</p></div>
-<div class="method-step"><span class="step-number">03</span><b>Compter les sièges</b><p>Un point représente un siège. Au survol : le total du bloc et la plage de sièges simulée.</p></div></div></div><p class="dialog-more"><a href="method.html#second-tour">Comment ça marche ↗</a></p>
+<div class="method-step"><span class="step-number">03</span><b>Compter les sièges</b><p>Un point représente un siège dans un tirage représentatif. Au survol : la fourchette simulée.</p></div></div></div><p>Les cartes partisanes cherchent à augmenter le nombre moyen de sièges simulés pour une famille, dans les départements étudiés. La comparaison « carte actuelle » applique le même modèle à la carte de 2024. Les plages vont du 10e au 90e percentile des simulations qui perturbent les duels. Elles ne tiennent pas compte de la sélection des cartes ni des incertitudes de répartition des voix.</p><p>L’extrême gauche regroupe la nuance EXG et les candidats rattachés financièrement à la LFI en 2024 ; ce rattachement ne prouve pas leur appartenance au parti. Les autres familles suivent les nuances officielles.</p><p class="dialog-more"><a href="method.html#partisane">Comment ça marche ↗</a></p>
 </dialog>
 <div id="info-tooltip" class="info-tooltip" role="tooltip" hidden></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script src="vendor/leaflet.js"></script>
-<script src="atlas.js?v=3"></script>
+<script src="atlas.js?v=12"></script>
 </body>
 </html>

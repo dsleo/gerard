@@ -35,6 +35,15 @@ def test_component_seats_sum_and_ranges():
     assert ks == [1, 2]
 
 
+def test_preferred_pair_changes_only_its_two_districts():
+    units, pop, adj = make_grid(4)
+    plan = {u:int(u[1]) for u in units}
+    candidate = recom_step(plan, adj, pop, 400, .2, random.Random(17), preferred_pair=(1, 2))
+    assert all(candidate[u] == plan[u] for u in units if plan[u] in (0, 3))
+    assert not check_contiguity(candidate, adj)
+    assert max_deviation(candidate, pop, 400) <= .2
+
+
 def test_component_seats_rejects_impossible_component():
     try:
         component_seats([10, 800], target=800, tol=0.2, seats=2)

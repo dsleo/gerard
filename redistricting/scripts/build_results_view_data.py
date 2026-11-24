@@ -321,10 +321,13 @@ def round_two_mapping_model(official_first_round: list[dict], second_round_resul
 
     rng = random.Random(seed)
     samples = []
+    sample_winners = []
     for _ in range(1000):
         seats: dict[str, int] = defaultdict(int)
+        winners = []
         for row in predictions:
             if not row["estimated"]:
+                winners.append(None)
                 continue
             pair = tuple(sorted((row["bloc_a"], row["bloc_b"])))
             pool = centered_residuals_by_pair.get(pair, [])
@@ -332,12 +335,27 @@ def round_two_mapping_model(official_first_round: list[dict], second_round_resul
                 pool = global_residuals
             error = rng.choice(pool) if pool else 0.0
             share_a = min(1.0, max(0.0, row["bloc_a_share"] + error))
-            seats[row["bloc_a"] if share_a >= 0.5 else row["bloc_b"]] += 1
+            winner = row["bloc_a"] if share_a >= 0.5 else row["bloc_b"]
+            seats[winner] += 1
+            winners.append(winner)
         samples.append(dict(seats))
+        sample_winners.append(winners)
+    medians = {block: quantile([sample.get(block, 0) for sample in samples], .5) for block in blocks}
+    representative_index = min(range(len(samples)), key=lambda i: sum(abs(samples[i].get(block, 0) - medians[block]) for block in blocks))
+    for row, winner in zip(predictions, sample_winners[representative_index]):
+        row['representative_winner_bloc'] = winner
     central_seats: dict[str, int] = defaultdict(int)
+    expected_seats: dict[str, float] = defaultdict(float)
     for row in predictions:
         if row["estimated"]:
             central_seats[row["winner_bloc"]] += 1
+            pair = tuple(sorted((row["bloc_a"], row["bloc_b"])))
+            pool = centered_residuals_by_pair.get(pair, [])
+            if len(pool) < 10:
+                pool = global_residuals
+            probability_a = sum(row["bloc_a_share"] + error >= .5 for error in pool) / len(pool) if pool else float(row["bloc_a_share"] >= .5)
+            expected_seats[row["bloc_a"]] += probability_a
+            expected_seats[row["bloc_b"]] += 1 - probability_a
     seat_projection = {}
     for block in blocks:
         seat_values = [sample.get(block, 0) for sample in samples]
@@ -345,6 +363,8 @@ def round_two_mapping_model(official_first_round: list[dict], second_round_resul
             "seats": central_seats.get(block, 0),
             "low": quantile(seat_values, 0.1),
             "high": quantile(seat_values, 0.9),
+            "representative": samples[representative_index].get(block, 0),
+            "expected": expected_seats.get(block, 0.0),
         }
 
     winner_matches = sum((row["selected_prediction"] >= 0.5) == (row["observed"] >= 0.5)
@@ -357,7 +377,7 @@ def round_two_mapping_model(official_first_round: list[dict], second_round_resul
                          / len(validation)
                          if validation else None)
     return {
-        "mapping": "coarse" if len(blocks) == 5 else "fine",
+        "mapping": "fine" if "ecologist" in blocks else "coarse",
         "blocks": blocks,
         "districts": predictions,
         "seat_projection": seat_projection,
@@ -393,13 +413,13 @@ def round_two_mapping_model(official_first_round: list[dict], second_round_resul
 def build_round_two_projection(official_first_round: list[dict], second_round_results: list[dict],
                                projected_districts: list[dict], coarse_mapping: dict[str, str],
                                fine_mapping: dict[str, str]) -> dict:
-    coarse_blocks = ["left", "centre", "right", "far_right", "other"]
+    coarse_blocks = ["lfi", "left", "centre", "right", "far_right", "other"]
     fine_blocks = ["far_left", "left", "ecologist", "centre", "right", "far_right", "other"]
     coarse = round_two_mapping_model(official_first_round, second_round_results, projected_districts,
                                      coarse_mapping, coarse_blocks, 2024)
     fine = round_two_mapping_model(official_first_round, second_round_results, projected_districts,
                                    fine_mapping, fine_blocks, 2025)
-    fine_to_family = {"far_left": "left", "left": "left", "ecologist": "left",
+    fine_to_family = {"far_left": "lfi", "left": "left", "ecologist": "left",
                       "centre": "centre", "right": "right", "far_right": "far_right", "other": "other"}
     combined_seats = {}
     for family_name in coarse_blocks:
@@ -413,6 +433,7 @@ def build_round_two_projection(official_first_round: list[dict], second_round_re
         headline = coarse["seat_projection"][family_name]
         combined_seats[family_name] = {
             "seats": headline["seats"],
+            "representative": headline["representative"],
             "low": min(headline["low"], fine_seats["low"]),
             "high": max(headline["high"], fine_seats["high"]),
         }
@@ -471,6 +492,8 @@ def territorial_metrics() -> dict:
 
 
 def main() -> None:
+    from partisan_affiliations import load_affiliations, affiliation_for, PARTY_LFI
+    affiliations = load_affiliations(ELECTORAL / 'rattachement-candidats-leg-2024.xlsx', CONSTITUENCY_RESULTS)
     mappings = yaml.safe_load(BLOCS.read_text(encoding="utf-8"))["mappings"]
     nuance_to_bloc = {
         nuance: bloc
@@ -482,6 +505,8 @@ def main() -> None:
         for bloc, nuances in mappings["fine"]["blocs"].items()
         for nuance in nuances
     }
+    nuance_to_bloc.update({'EXG': 'lfi', 'LFI_ATTACHMENT': 'lfi'})
+    nuance_to_fine['LFI_ATTACHMENT'] = 'far_left'
 
     # The run draft carries the audited unit assignment. Dissolve its unit
     # geometries to the displayed constituency level and retain the 12
@@ -545,10 +570,12 @@ def main() -> None:
                     continue
                 slot = match.group(1)
                 nuance = str(nuance or "").strip()
-                bloc = nuance_to_bloc.get(nuance, "other")
                 votes = number(row.get(f"Voix {slot}"))
                 if votes <= 0:
                     continue
+                if affiliation_for(affiliations, row, slot) == PARTY_LFI:
+                    nuance = 'LFI_ATTACHMENT'
+                bloc = nuance_to_bloc.get(nuance, "other")
                 for district_id, weight in links.items():
                     proposed_votes[district_id][bloc] += votes * weight
                     proposed_votes_by_nuance[district_id][nuance] += votes * weight
@@ -580,6 +607,8 @@ def main() -> None:
                 slot = match.group(1)
                 nuance = str(nuance or "").strip()
                 votes = number(row.get(f"Voix {slot}"))
+                if votes > 0 and affiliation_for(affiliations, row, slot) == PARTY_LFI:
+                    nuance = 'LFI_ATTACHMENT'
                 bloc = nuance_to_bloc.get(nuance, "other")
                 official_votes[key][bloc] += votes
                 official_votes_by_nuance[key][nuance] += votes
@@ -653,7 +682,8 @@ def main() -> None:
                 if not has_candidate:
                     continue
                 candidate_count += 1
-                votes_by_nuance[str(nuance or "").strip()] += number(row.get(f"Voix {slot}"))
+                candidate_nuance = 'LFI_ATTACHMENT' if affiliation_for(affiliations, row, slot) == PARTY_LFI else str(nuance or "").strip()
+                votes_by_nuance[candidate_nuance] += number(row.get(f"Voix {slot}"))
             second_round_results.append({
                 "department": dep,
                 "district_number": district_number,
@@ -764,6 +794,7 @@ def main() -> None:
         "alternatives": [],
         "input_sha256": {"national_draft": digest(DRAFT), "run_summary": digest(SUMMARY),
                           "analysis": digest(ANALYSIS), "heuristic_metrics": digest(HEURISTIC),
+                          "candidate_financial_attachments": digest(ELECTORAL / 'rattachement-candidats-leg-2024.xlsx'),
                           "official_first_round_results": digest(CONSTITUENCY_RESULTS),
                           "official_second_round_results": digest(CONSTITUENCY_RESULTS_T2)},
         "caveat": "Scénario descriptif : voix du premier tour 2024 réparties par pondération bureau–IRIS sur les circonscriptions optimisées; les départements conservés reprennent leurs résultats observés. Les sièges indiquent une pluralité de blocs au premier tour, pas des députés qui auraient été élus. Carte de travail non certifiée.",

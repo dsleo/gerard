@@ -3,8 +3,8 @@ const fmt = (value, digits = 0) => Number(value).toLocaleString('fr-FR', {minimu
 const pct = (value, digits = 1) => fmt(value * 100, digits) + ' %';
 const points = value => (value > 0 ? '+' : '') + fmt(value * 100, 2) + ' pt';
 const blocs = [
-  ['left', 'Gauche', '#B85E43'], ['centre', 'Centre', '#D39476'],
-  ['right', 'Droite républicaine', '#4E7883'], ['far_right', 'Droite nationale', '#829DA0'], ['other', 'Autres', '#EEE8D8']
+  ['lfi', 'Extrême gauche', '#8F3441'], ['left', 'Gauche', '#B85E43'], ['centre', 'Centre', '#D39476'],
+  ['right', 'Droite républicaine', '#4E7883'], ['far_right', 'Extrême droite', '#829DA0'], ['other', 'Autres', '#EEE8D8']
 ];
 async function renderMethod() {
   try {
@@ -12,14 +12,7 @@ async function renderMethod() {
     const round = data.round_two, validation = round.validation;
     const draft = data.run_summary;
     $('#draft-scope').textContent = fmt(draft.generated_districts) + ' circonscriptions sont générées dans ' + fmt(draft.generated_departments) + ' départements ; ' + fmt(draft.carry_forward_districts) + ' restent inchangées dans les ' + fmt(draft.carry_forward_departments) + ' autres. Le périmètre départemental compte ' + fmt(draft.departmental_districts) + ' sièges, auxquels s’ajoutent 19 sièges hors de ce périmètre, pour un total de 577.';
-    $('#round2-coverage').textContent = fmt(round.estimated_districts) + ' circonscriptions départementales ont une estimation, dont ' + fmt(round.matched_historical_pair_districts) + ' à partir de duels analogues de 2024.';
     $('#validation-stats').innerHTML = '<div><strong>' + pct(validation.bloc_winner_match_rate) + '</strong><span>de gagnants de bloc retrouvés</span></div><div><strong>' + fmt(validation.mean_absolute_vote_share_error * 100, 2) + ' points</strong><span>d’erreur absolue moyenne</span></div><div><strong>' + fmt(validation.held_out_predictions) + '</strong><span>duels historiques testés</span></div>';
-    $('#calibration-text').textContent = 'Le biais global mesuré est de ' + points(validation.measured_global_bias) + '. ' + (validation.calibration_applied ? 'Une correction globale de ' + points(validation.applied_calibration_bias) + ' est appliquée.' : 'Les corrections globale et par type de duel ont été testées puis écartées : elles n’améliorent pas les critères de validation.') + ' L’intervalle individuel annoncé à 80 % couvre ' + pct(validation['80pct_interval_coverage']) + ' des erreurs historiques testées.';
-    $('#validation-table tbody').innerHTML = [
-      ['Sans correction', validation.raw_bloc_winner_match_rate, validation.raw_mean_absolute_vote_share_error],
-      ['Correction globale testée', validation.candidate_calibrated_bloc_winner_match_rate, validation.candidate_calibrated_mean_absolute_vote_share_error],
-      ['Correction par duel testée', validation.pair_calibrated_bloc_winner_match_rate, validation.pair_calibrated_mean_absolute_vote_share_error]
-    ].map(([label, rate, error]) => '<tr><td>' + label + '</td><td>' + pct(rate) + '</td><td>' + fmt(error * 100, 2) + '</td></tr>').join('');
     const bars = (row, color) => row ? '<div class="comparison-bars" style="--bloc-color:' + color + '"><div class="comparison-bar"><i style="--share:' + row.vote_share * 100 + '"></i><span>' + pct(row.vote_share) + '</span></div><div class="comparison-bar seats"><i style="--share:' + row.seat_share * 100 + '"></i><span>' + pct(row.seat_share) + '</span></div></div>' : '—';
     $('#metric-table tbody').innerHTML = blocs.map(([id, label, color]) => {
       const before = data.official.blocks[id], after = data.proposal.blocks[id];
@@ -35,4 +28,37 @@ async function renderMethod() {
     $('#method-status').textContent = 'Les données chiffrées ne sont pas disponibles. Les explications ci-dessus restent consultables.';
   }
 }
+if (window.katex) {
+  document.querySelectorAll('.tex-equation').forEach(function (equation) {
+    window.katex.render(equation.dataset.tex, equation, { displayMode: true, throwOnError: false });
+  });
+}
 renderMethod();
+
+// Preserve direct links into any section while showing one part of the guide at a time.
+(function () {
+  var groups = ['methode', 'donnees', 'conclusions'];
+  var links = document.querySelectorAll('[data-section-link]');
+  function show(group) {
+    document.querySelectorAll('[data-guide-group]').forEach(function (el) { el.hidden = el.dataset.guideGroup !== group; });
+    document.querySelectorAll('[data-nav-group]').forEach(function (el) { el.hidden = el.dataset.navGroup !== group; });
+    links.forEach(function (el) { if (el.dataset.sectionLink === group) el.setAttribute('aria-current', 'page'); else el.removeAttribute('aria-current'); });
+  }
+  function sync() {
+    var hash = decodeURIComponent(location.hash.slice(1));
+    var target = document.getElementById(hash);
+    var section = target && target.closest('[data-guide-group]');
+    show(groups.includes(hash) ? hash : section ? section.dataset.guideGroup : 'methode');
+    if (section) requestAnimationFrame(function () { target.scrollIntoView(); });
+  }
+  links.forEach(function (link) {
+    link.addEventListener('click', function (event) {
+      event.preventDefault();
+      var group = link.dataset.sectionLink;
+      if (location.hash !== '#' + group) history.pushState(null, '', '#' + group);
+      show(group);
+    });
+  });
+  window.addEventListener('hashchange', sync);
+  sync();
+})();

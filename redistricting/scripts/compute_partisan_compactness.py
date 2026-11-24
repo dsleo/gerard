@@ -13,7 +13,7 @@ def loss(pieces):
     return 1-4*math.pi*shape.area/(shape.length*shape.length) if shape.length>0 else 1.0
 
 def main():
-    ap=argparse.ArgumentParser();ap.add_argument('--data-root',required=True,type=Path);ap.add_argument('--output',required=True,type=Path);args=ap.parse_args()
+    ap=argparse.ArgumentParser();ap.add_argument('--data-root',required=True,type=Path);ap.add_argument('--output',required=True,type=Path);ap.add_argument('--only',nargs='+');args=ap.parse_args()
     local=args.data_root.resolve();sys.path.insert(0,str(local/'scripts'));sys.path.insert(0,str(local/'src'))
     from redistrict.graph.iris import iris_geometry, split_units
     import geopandas as gpd
@@ -49,9 +49,10 @@ def main():
     if abs(baseline-reference)>1e-8:raise ValueError(f'official compactness mismatch {baseline} vs {reference}')
     print('verified baseline',baseline,'districts',count,flush=True)
     docs=ROOT.parent/'docs/redistricting'
-    sources={'rn':'14_national_partisan_scenario.json','left':'15_broad_left_scenario.json','lfi':'15_lfi_attachment_scenario.json'}
+    sources={'lfi':'22_lfi_expected.json','left':'22_left_expected.json','centre':'22_centre_expected.json','right':'22_right_expected.json','far_right':'22_far_right_expected.json','other':'18_other_scenario.json'}
     result={'official':baseline,'districts':count,'method':'same expanded official units and Lambert-93 Polsby-Popper audit; changed districts use original model units','scenarios':{}}
     for name,filename in sources.items():
+        if args.only and name not in args.only: continue
         scenarios=json.loads((docs/filename).read_text())['selected'];changed={x['department'] for x in scenarios};vals=[v for dep,scores in official.items() if dep not in changed for v in scores]
         for row in scenarios:
             groups=collections.defaultdict(list)

@@ -1,7 +1,7 @@
 'use strict';
 const DATA='../export/';
 const $=selector=>document.querySelector(selector);
-const BLOCKS={left:{label:'Gauche',color:'#B85E43'},centre:{label:'Centre',color:'#D39476'},right:{label:'Droite républicaine',color:'#4E7883'},far_right:{label:'Droite nationale',color:'#829DA0'},other:{label:'Autres',color:'#EEE8D8'},territorial:{label:'Territoires',color:'#B8BCAE'},unknown:{label:'Sans estimation',color:'#d4c8b1'}};
+const BLOCKS={left:{label:'Gauche',color:'#B85E43'},centre:{label:'Centre',color:'#D39476'},right:{label:'Droite républicaine',color:'#4E7883'},far_right:{label:'Extrême droite',color:'#829DA0'},other:{label:'Autres',color:'#EEE8D8'},territorial:{label:'Territoires',color:'#B8BCAE'},unknown:{label:'Sans estimation',color:'#d4c8b1'}};
 const ORDER=['left','centre','right','far_right','other'];
 const SCENARIOS=[{id:'rn',label:'Rassemblement national',target:'au RN'}, {id:'left',label:'Gauche',target:'à la gauche'}, {id:'lfi',label:'LFI',target:'aux candidats rattachés à LFI'}];
 let DATASET,OFFICIAL,LAYOUT,MAP,LAYER,SEATS,scenario=0,round=2,assemblyView='projected',assemblyGroups=new Map();

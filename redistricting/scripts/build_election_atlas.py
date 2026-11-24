@@ -10,6 +10,7 @@ from pathlib import Path
 
 import geopandas as gpd
 from shapely.geometry import mapping
+from partisan_affiliations import load_affiliations, affiliation_for, PARTY_LFI
 
 ROOT = Path(__file__).resolve().parents[1]
 QUARANTINE = ROOT / "data/quarantine/electoral"
@@ -19,10 +20,11 @@ OUTPUT = ROOT / "export/browser/election-2024.js"
 # Ministry candidate nuances grouped for map reading. The same grouping is
 # documented as a proposed coarse visual grouping in docs/redistricting/blocs.draft.yaml.
 GROUPS = {
-    "gauche": {"label": "Gauche · NFP", "color": "#cf3d43", "hatch": False, "nuances": {"EXG", "COM", "FI", "SOC", "RDG", "VEC", "UG", "DVG", "ECO"}},
-    "centre": {"label": "Centre · Ensemble", "color": "#e1b43f", "hatch": True, "nuances": {"REN", "MDM", "HOR", "ENS", "DVC", "UDI"}},
-    "droite": {"label": "Droite · LR et alliés", "color": "#3982a2", "hatch": False, "nuances": {"LR", "DVD", "DSV"}},
-    "rn": {"label": "RN · alliés", "color": "#173d78", "hatch": True, "nuances": {"RN", "REC", "UXD", "EXD"}},
+    "extreme_gauche": {"label": "Extrême gauche", "color": "#8F3441", "hatch": False, "nuances": {"EXG"}},
+    "gauche": {"label": "Gauche", "color": "#B85E43", "hatch": False, "nuances": {"COM", "FI", "SOC", "RDG", "VEC", "UG", "DVG", "ECO"}},
+    "centre": {"label": "Centre · Ensemble", "color": "#D39476", "hatch": True, "nuances": {"REN", "MDM", "HOR", "ENS", "DVC", "UDI"}},
+    "droite": {"label": "Droite · LR et alliés", "color": "#4E7883", "hatch": False, "nuances": {"LR", "DVD", "DSV"}},
+    "rn": {"label": "RN · alliés", "color": "#829DA0", "hatch": True, "nuances": {"RN", "REC", "UXD", "EXD"}},
     "autres": {"label": "Autres · régionaux / divers", "color": "#7d8978", "hatch": False, "nuances": {"REG", "DIV"}},
 }
 
@@ -34,7 +36,7 @@ def constituency_code(row: dict[str, str]) -> str:
     return dept + suffix
 
 
-def winners(path: Path) -> dict[str, dict[str, str]]:
+def winners(path: Path, affiliations=None) -> dict[str, dict[str, str]]:
     found: dict[str, dict[str, str]] = {}
     with path.open(encoding="utf-8-sig", newline="") as handle:
         for row in csv.DictReader(handle, delimiter=";"):
@@ -50,6 +52,7 @@ def winners(path: Path) -> dict[str, dict[str, str]]:
                     "constituency": (row.get("Libellé circonscription législative") or "").strip(),
                     "round": "1er tour" if "t1_" in path.name else "2d tour",
                     "votes": (row.get(f"Voix {i}") or "").strip(),
+                    "lfi_attached": bool(affiliations is not None and affiliation_for(affiliations, row, i) == PARTY_LFI),
                 }
                 break
     return found
@@ -65,9 +68,13 @@ def classify(nuance: str) -> str:
 def main() -> None:
     # The 1st-round file supplies the 76 candidates elected immediately; the
     # 2nd-round file supplies the remaining 501 constituency winners.
-    elected = winners(QUARANTINE / "legislatives_2024_t1_circonscriptions.csv")
-    elected.update(winners(QUARANTINE / "legislatives_2024_t2_circonscriptions.csv"))
-    seats = Counter(classify(row["nuance"]) for row in elected.values())
+    first = QUARANTINE / "legislatives_2024_t1_circonscriptions.csv"
+    affiliations = load_affiliations(QUARANTINE / "rattachement-candidats-leg-2024.xlsx", first)
+    elected = winners(first, affiliations)
+    elected.update(winners(QUARANTINE / "legislatives_2024_t2_circonscriptions.csv", affiliations))
+    def winner_group(row):
+        return 'extreme_gauche' if row['lfi_attached'] else classify(row['nuance'])
+    seats = Counter(winner_group(row) for row in elected.values())
 
     with zipfile.ZipFile(BOUNDARIES) as archive:
         shp = next(n for n in archive.namelist() if n.endswith(".shp"))
@@ -78,7 +85,7 @@ def main() -> None:
         result = elected.get(code)
         if not result:
             continue
-        group = classify(result["nuance"])
+        group = winner_group(result)
         geom = row.geometry.simplify(0.00012, preserve_topology=True)
         features.append({
             "type": "Feature",

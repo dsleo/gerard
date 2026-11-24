@@ -4,6 +4,7 @@ Reads local quarantined election inputs, never changes search results or publish
 raw votes. 2024 official districts outside changed departments are retained.
 """
 from __future__ import annotations
+import argparse
 import base64
 import collections
 import gzip
@@ -27,12 +28,17 @@ from partisan_affiliations import load_affiliations
 from partisan_split_votes import allocate_split_votes
 
 SPECS = [
-    ('rn', '14_national_partisan_scenario.json', 'RN', 'far_right'),
-    ('left', '15_broad_left_scenario.json', None, 'left'),
-    ('lfi', '15_lfi_attachment_scenario.json', 'LFI', 'left'),
+    ('lfi', '22_lfi_expected.json', None, 'lfi'),
+    ('left', '22_left_expected.json', None, 'left'),
+    ('centre', '22_centre_expected.json', None, 'centre'),
+    ('right', '22_right_expected.json', None, 'right'),
+    ('far_right', '22_far_right_expected.json', None, 'far_right'),
+    ('other', '18_other_scenario.json', None, 'other'),
 ]
+
 OUT = ROOT / 'export/browser/partisan-scenarios.js'
-BLOCKS = campaign.BLOCKS
+import runoff_model_split as split
+BLOCKS = split.BLOCKS
 
 
 def write_payload(path, data):
@@ -42,20 +48,27 @@ def write_payload(path, data):
 
 
 def main():
+    parser=argparse.ArgumentParser();parser.add_argument('--only',nargs='+');args=parser.parse_args()
     snap = campaign.snapshot()
     state = pickle.loads(exp.STATE.read_bytes())
     geometry = pickle.loads((ROOT / 'data/processed/gate1/unit_geometry_wkb.pkl').read_bytes())
     definitions = yaml.safe_load(exp.BLOCS.read_text())['mappings']
     mapping_bloc = {n:b for b, ns in definitions['coarse']['blocs'].items() for n in ns}
-    runoff_builder, second = campaign.second_round_inputs()
-    augmented = dict(mapping_bloc); augmented.update({'model:'+b:b for b in BLOCKS})
+    runoff_builder, definitions, mapping_bloc, affiliations, first, second = split.inputs()
+    snap['official_first_round'] = first
+    augmented = dict(mapping_bloc)
     transform_xy = pyproj.Transformer.from_crs(2154, 4326, always_xy=True).transform
     scenarios = {}
+    if args.only and OUT.exists():
+        import re
+        match=re.search(r'atob\("([A-Za-z0-9+/=]+)"\)',OUT.read_text())
+        if not match:raise ValueError('unrecognized saved scenario snapshot')
+        scenarios=json.loads(gzip.decompress(base64.b64decode(match.group(1))))['scenarios']
     for key, file, party, bloc in SPECS:
+        if args.only and key not in args.only: continue
         data = json.loads((REPO / 'docs/redistricting' / file).read_text())
         selected = data['selected']
         departments = {r['department'] for r in selected}
-        affiliations = load_affiliations(campaign.AFFILIATION, campaign.FIRST) if party == 'LFI' else None
         nuance = 'RN' if party == 'RN' else None
         votes = exp.load_votes(exp.VOTES, departments, definitions, nuance, affiliations)
         votes, coverage, _, _ = allocate_split_votes(state, departments, votes, definitions, nuance,
@@ -64,8 +77,6 @@ def main():
         features = []
         for item in selected:
             dep = item['department']; plan = item['assignment']
-            if any(len(k) != 2 for k in [dep]):
-                raise ValueError('only metropolitan selected geometries are currently supported')
             units = set(plan)
             for unit in units:
                 if unit not in votes['coarse']:
@@ -77,8 +88,8 @@ def main():
                 members[district].append(unit)
                 for label, count in votes['coarse'][unit].items():
                     # Recombine the target with its coarse bloc for the atlas model.
-                    if label in ('party:RN', 'party:LFI'):
-                        label = bloc
+                    if label == 'party:LFI':
+                        label = 'lfi'
                     groups[district][label] += count
             for district in sorted(members):
                 number = int(district) + 1
@@ -113,7 +124,7 @@ def main():
         for row in rows:
             res=result_by_key[(row['department'],row['district_number'])]
             output_rows[row['map_id']] = {'first_bloc':row['first_bloc'], 'first_share':row['first_share'],
-                                          'runoff_bloc':res.get('winner_bloc'), 'estimated':res['estimated'],
+                                          'runoff_bloc':res.get('representative_winner_bloc'), 'estimated':res['estimated'],
                                           'runoff_share':res.get('bloc_a_share'), 'bloc_a':res.get('bloc_a'),
                                           'interval_low':res.get('bloc_a_interval_low'), 'interval_high':res.get('bloc_a_interval_high')}
         if len(rows) > 577: raise ValueError('more modeled districts than the Assembly')

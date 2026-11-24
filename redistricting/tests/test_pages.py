@@ -28,7 +28,13 @@ def test_pages_bundle_uses_only_saved_snapshots_and_project_relative_urls(tmp_pa
     snapshots = {path.name for path in (output / "export/browser").iterdir()}
     assert snapshots == set(builder.SNAPSHOTS)
     assert "const DATA='export/';" in (output / "atlas.js").read_text()
-    assert 'src="export/browser/projection-2026.js"' in (output / "method.html").read_text()
+    assert 'src="export/browser/projection-2026.js?v=9"' in (output / "method.html").read_text()
+    assert 'href="atlas.css?v=11"' in (output / "index.html").read_text()
+    method = (output / 'method.html').read_text()
+    assert 'href="index.html">← Explorer la carte' in method
+    assert 'href="index.html">Revenir à la carte' in method
+    assert 'id="partisane"' in method and 'id="sources"' in method
+    assert 'liaison-iris-bureaux-de-vote-de-2024' in method
     assert "const DATA='export/';" in (output / 'scenarios.js').read_text()
     assert (output / 'scenarios.html').is_file()
     assert 'partisan-scenarios.js' in snapshots
