@@ -224,7 +224,6 @@ button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var
 .first-use-dialog h2{margin:0 auto 16px;max-width:24ch;color:#514a3d;font:600 clamp(18px,3.5vw,22px)/1.35 var(--serif)}
 .first-use-continue{display:block;min-height:40px;margin:0 auto;padding:9px 15px;border:1px solid #9c917c;background:#e5dcc9;color:#514a3d;font:500 11px/1.2 var(--display);letter-spacing:.035em}
 .first-use-continue:hover{background:#dcd1bb}
-.first-use-more{display:block;width:max-content;margin:12px auto 0;color:#756b58;font:11px/1.5 var(--serif);text-underline-offset:3px}
 @media(max-width:760px){
   .time-switch button{min-height:44px;padding:9px 12px}
   .map-zoom button{width:44px;height:44px}

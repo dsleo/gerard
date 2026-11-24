@@ -318,13 +318,12 @@ async function start(){
     bindLegendTooltip();bindHemicycleTooltip();window.addEventListener('resize',()=>{map.invalidateSize();if(selectedDepartment)focusDepartment();else recenterMap()});
   }catch(error){console.error(error);$('#map-loading').hidden=true;$('#map').setAttribute('aria-busy','false');$('#map-error').hidden=false}
 }
-const FIRST_USE={neutral:{title:'La géographie peut-elle guider un autre découpage ?',href:'method.html#territoires'},partisan:{title:'Un découpage peut-il avantager un camp ?',href:'method.html#partisane'}};
+const FIRST_USE={neutral:{title:'Peut-on mieux découper le territoire ?'},partisan:{title:'Un découpage peut-il avantager un camp ?'}};
 function explainFirst(kind,action){
   let seen=false;try{seen=localStorage.getItem('gerard-first-use-'+kind)==='1'}catch{}
   if(seen){action();return}
   const content=FIRST_USE[kind],dialog=$('#first-use-dialog');
   $('#first-use-title').textContent=content.title;
-  $('#first-use-more').href=content.href;
   const button=$('#first-use-continue');button.onclick=()=>{try{localStorage.setItem('gerard-first-use-'+kind,'1')}catch{}dialog.close();action()};
   dialog.onclick=event=>{if(event.target===dialog)dialog.close()};
   dialog.showModal();
