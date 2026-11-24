@@ -4,7 +4,7 @@ const pct = (value, digits = 1) => fmt(value * 100, digits) + ' %';
 const points = value => (value > 0 ? '+' : '') + fmt(value * 100, 2) + ' pt';
 const blocs = [
   ['lfi', 'Extrême gauche', '#8F3441'], ['left', 'Gauche', '#B85E43'], ['centre', 'Centre', '#D39476'],
-  ['right', 'Droite républicaine', '#4E7883'], ['far_right', 'Extrême droite', '#829DA0'], ['other', 'Autres', '#EEE8D8']
+  ['right', 'Droite républicaine', '#829DA0'], ['far_right', 'Extrême droite', '#4E7883'], ['other', 'Autres', '#EEE8D8']
 ];
 async function renderMethod() {
   try {

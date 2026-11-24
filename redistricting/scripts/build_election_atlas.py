@@ -22,9 +22,9 @@ OUTPUT = ROOT / "export/browser/election-2024.js"
 GROUPS = {
     "extreme_gauche": {"label": "Extrême gauche", "color": "#8F3441", "hatch": False, "nuances": {"EXG"}},
     "gauche": {"label": "Gauche", "color": "#B85E43", "hatch": False, "nuances": {"COM", "FI", "SOC", "RDG", "VEC", "UG", "DVG", "ECO"}},
-    "centre": {"label": "Centre · Ensemble", "color": "#D39476", "hatch": True, "nuances": {"REN", "MDM", "HOR", "ENS", "DVC", "UDI"}},
-    "droite": {"label": "Droite · LR et alliés", "color": "#4E7883", "hatch": False, "nuances": {"LR", "DVD", "DSV"}},
-    "rn": {"label": "RN · alliés", "color": "#829DA0", "hatch": True, "nuances": {"RN", "REC", "UXD", "EXD"}},
+    "centre": {"label": "Centre · Ensemble", "color": "#D39476", "hatch": False, "nuances": {"REN", "MDM", "HOR", "ENS", "DVC", "UDI"}},
+    "droite": {"label": "Droite · LR et alliés", "color": "#829DA0", "hatch": False, "nuances": {"LR", "DVD", "DSV"}},
+    "rn": {"label": "RN · alliés", "color": "#4E7883", "hatch": False, "nuances": {"RN", "REC", "UXD", "EXD"}},
     "autres": {"label": "Autres · régionaux / divers", "color": "#7d8978", "hatch": False, "nuances": {"REG", "DIV"}},
 }
 
