@@ -21,7 +21,7 @@ redistricting/data/
 experiments/
 _site/
 
-# Publish only the four browser snapshots used by the atlas.
+# Publish only the browser snapshots used by the atlas.
 redistricting/export/*
 !redistricting/export/browser/
 redistricting/export/browser/*
@@ -30,6 +30,7 @@ redistricting/export/browser/*
 !redistricting/export/browser/hemicycle-layout.js
 !redistricting/export/browser/projection-2026.js
 !redistricting/export/browser/partisan-scenarios.js
+!redistricting/export/browser/department-distances.js
 
 # Local research notes and design context
 /docs/

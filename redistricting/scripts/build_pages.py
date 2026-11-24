@@ -19,6 +19,7 @@ BROWSER = ROOT / "redistricting/export/browser"
 SNAPSHOTS = (
     "current-assembly.js", "election-2024.js",
     "hemicycle-layout.js", "projection-2026.js", "partisan-scenarios.js",
+    "department-distances.js",
 )
 
 

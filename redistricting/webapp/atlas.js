@@ -12,9 +12,9 @@ const FAMILY_DEFS=[
 ];
 const FAMILY_BY_GROUP=new Map(FAMILY_DEFS.flatMap(f=>f.groups.map(g=>[g,f])));
 const FAMILY_BY_BLOC=new Map([['lfi',FAMILY_DEFS[0]],['left',FAMILY_DEFS[1]],['centre',FAMILY_DEFS[2]],['right',FAMILY_DEFS[3]],['far_right',FAMILY_DEFS[4]],['other',FAMILY_DEFS[6]]]);
-let CURRENT=null,ELECTION=null,HEMICYCLE_LAYOUT=null,PROJECTION=null,PARTISAN=null,viewMode='current',partisanChoice=0,map,currentLayer=null,proposalLayer=null,proposalVisible=false,officialRound=2,proposalRound=2,cache={},toastTimer,proposalTransitionTimer,assemblyView="projected",assemblyGroups=new Map(),selectedDepartment="",departments=[],activeDepartmentOption=-1;
+let CURRENT=null,ELECTION=null,HEMICYCLE_LAYOUT=null,PROJECTION=null,PARTISAN=null,DEPARTMENT_DISTANCES=null,distancePromise=null,viewMode='current',partisanChoice=0,map,currentLayer=null,proposalLayer=null,proposalVisible=false,officialRound=2,proposalRound=2,cache={},toastTimer,proposalTransitionTimer,assemblyView="projected",assemblyGroups=new Map(),selectedDepartment="",departments=[],activeDepartmentOption=-1;
 function family(group){return FAMILY_BY_GROUP.get(group)||FAMILY_BY_BLOC.get(group)||FAMILY_DEFS[6]}
-async function load(file){const key=file==='election-2024.js'?'election-2024':file==='current-assembly.js'?'current-assembly':file==='hemicycle-layout.js'?'hemicycle-layout':file==='projection-2026.js'?'projection-2026':file==='partisan-scenarios.js'?'partisan-scenarios':file.startsWith('maps/')?'map:'+file.split('/')[1].replace('.geojson',''):null;if(!key)throw Error('Donnée inconnue: '+file);if(cache[key])return cache[key];const src=key==='election-2024'?DATA+'browser/election-2024.js?v=12':key==='current-assembly'?DATA+'browser/current-assembly.js':key==='hemicycle-layout'?DATA+'browser/hemicycle-layout.js':key==='projection-2026'?DATA+'browser/projection-2026.js?v=9':key==='partisan-scenarios'?DATA+'browser/partisan-scenarios.js?v=9':DATA+'browser/maps/'+key.slice(4)+'.js';cache[key]=new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=src;script.onload=async()=>{try{const value=await window.REDISTRICTING_DATA?.[key];if(value)resolve(value);else reject(Error('Donnée absente: '+key))}catch(e){reject(e)}};script.onerror=()=>{delete cache[key];reject(Error('Impossible de lire '+src))};document.head.appendChild(script)});return cache[key]}
+async function load(file){const key=file==='election-2024.js'?'election-2024':file==='current-assembly.js'?'current-assembly':file==='hemicycle-layout.js'?'hemicycle-layout':file==='projection-2026.js'?'projection-2026':file==='partisan-scenarios.js'?'partisan-scenarios':file==='department-distances.js'?'department-distances':file.startsWith('maps/')?'map:'+file.split('/')[1].replace('.geojson',''):null;if(!key)throw Error('Donnée inconnue: '+file);if(cache[key])return cache[key];const src=key==='election-2024'?DATA+'browser/election-2024.js?v=12':key==='current-assembly'?DATA+'browser/current-assembly.js':key==='hemicycle-layout'?DATA+'browser/hemicycle-layout.js':key==='projection-2026'?DATA+'browser/projection-2026.js?v=9':key==='partisan-scenarios'?DATA+'browser/partisan-scenarios.js?v=9':key==='department-distances'?DATA+'browser/department-distances.js?v=2':DATA+'browser/maps/'+key.slice(4)+'.js';cache[key]=new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=src;script.onload=async()=>{try{const value=await window.REDISTRICTING_DATA?.[key];if(value)resolve(value);else reject(Error('Donnée absente: '+key))}catch(e){reject(e)}};script.onerror=()=>{delete cache[key];reject(Error('Impossible de lire '+src))};document.head.appendChild(script)});return cache[key]}
 function metro(feature){const d=String(feature.properties.department||feature.properties.dept||'');return Number(d)<96||d==='2A'||d==='2B'}
 function seatsLeftToRight(layout){const probe=document.createElementNS('http://www.w3.org/2000/svg','svg');probe.setAttribute('viewBox',layout.viewBox);probe.style.cssText='position:absolute;left:-10000px;top:0;width:1000px;height:700px;overflow:visible';const measured=layout.seats.map(seat=>{const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',seat.path);path.setAttribute('transform',seat.transform||'');probe.appendChild(path);return {seat,path}});document.body.appendChild(probe);const ordered=measured.map(({seat,path})=>{const box=path.getBBox();return {seat,x:box.x+box.width/2}}).sort((a,b)=>a.x-b.x).map(item=>item.seat);probe.remove();return ordered}
 function addHatches(layer){const paths=layer.getLayers().filter(l=>l._path),root=paths[0]?._path?.ownerSVGElement;if(!root)return;let defs=root.querySelector('#family-hatches');if(!defs){defs=document.createElementNS('http://www.w3.org/2000/svg','defs');defs.id='family-hatches';root.prepend(defs);FAMILY_DEFS.filter(f=>f.hatch).forEach(f=>{const pat=document.createElementNS('http://www.w3.org/2000/svg','pattern');pat.id='family-'+f.id;pat.setAttribute('patternUnits','userSpaceOnUse');pat.setAttribute('width','16');pat.setAttribute('height','16');const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');rect.setAttribute('width','16');rect.setAttribute('height','16');rect.setAttribute('fill',f.color);pat.appendChild(rect);const stroke=document.createElementNS('http://www.w3.org/2000/svg','path');stroke.setAttribute('d','M-4 16L16-4M4 20L20 4');stroke.setAttribute('stroke','#f5eddd');stroke.setAttribute('stroke-opacity','.17');stroke.setAttribute('stroke-width','.45');pat.appendChild(stroke);defs.appendChild(pat)})}for(const item of paths){const f=family(item.feature.properties.bloc||item.feature.properties.group);if(f.hatch&&(!selectedDepartment||departmentCode(item.feature)===selectedDepartment))item._path.style.fill='url(#family-'+f.id+')'}}
@@ -75,7 +75,7 @@ function applyProposalRound(round){
   });
   requestAnimationFrame(()=>applyDepartmentStyles(proposalLayer));
 }
-async function showProposal(){if(proposalVisible){resetCurrent();return}try{[PROJECTION,HEMICYCLE_LAYOUT]=await Promise.all([load('projection-2026.js'),load('hemicycle-layout.js')]);PROJECTION.districtsById=new Map(PROJECTION.districts.map(row=>[row.department+'-'+String(row.district_number).padStart(2,'0'),row]));PROJECTION.officialFirstRoundById=new Map(PROJECTION.official_first_round.map(row=>[row.department+'-'+String(row.district_number).padStart(2,'0'),row]));const roundTwoById=new Map((PROJECTION.round_two?.districts||[]).map(row=>[row.department+'-'+String(row.district_number).padStart(2,'0'),row]));const shown=PROJECTION.map.features.filter(metro).map(feature=>{const result=projectionProperties(feature);return result?{...feature,properties:{...feature.properties,...result,firstRoundBloc:result.bloc,round2:(()=>{const r=roundTwoById.get(String(result.department)+'-'+String(result.district_number).padStart(2,'0'));return r?{...r,winner_bloc:r.representative_winner_bloc}:r})()}}:feature});proposalLayer=L.geoJSON({type:'FeatureCollection',features:shown},{style:f=>({color:'#504735',weight:.48,fillColor:'#ded4bd',fillOpacity:0}),onEachFeature:(f,l)=>{l.bindTooltip(tooltipContent(f.properties,true),{sticky:true,direction:'top',offset:[0,-5]});l.on('click',e=>handleDistrictClick(e,f))}}).addTo(map);requestAnimationFrame(()=>addHatches(proposalLayer));if(currentLayer)currentLayer.setStyle({fillOpacity:.05,opacity:.25});setTimeView(true);$('#results').hidden=false;$('#results-cue').hidden=false;$('#map-scenario').hidden=false;$('#map-scenario').textContent='Scénario exploratoire · votes de 2024';$('#proposal-error').hidden=true;map.invalidateSize();proposalVisible=true;renderComparison(PROJECTION);applyProposalRound(proposalRound);proposalTransitionTimer=setTimeout(()=>{if(!proposalVisible||!proposalLayer)return;if(currentLayer){map.removeLayer(currentLayer);currentLayer=null}if(selectedDepartment)applyDepartmentStyles(proposalLayer);else map.fitBounds(proposalLayer.getBounds(),{...mapPadding(),animate:!matchMedia('(prefers-reduced-motion: reduce)').matches,duration:.7})},700)}catch(error){console.error(error);$('#proposal-error').hidden=false;if(proposalLayer){map.removeLayer(proposalLayer);proposalLayer=null}resetCurrent()}}
+async function showProposal(){if(proposalVisible){resetCurrent();return}try{[PROJECTION,HEMICYCLE_LAYOUT]=await Promise.all([load('projection-2026.js'),load('hemicycle-layout.js')]);PROJECTION.districtsById=new Map(PROJECTION.districts.map(row=>[row.department+'-'+String(row.district_number).padStart(2,'0'),row]));PROJECTION.officialFirstRoundById=new Map(PROJECTION.official_first_round.map(row=>[row.department+'-'+String(row.district_number).padStart(2,'0'),row]));const roundTwoById=new Map((PROJECTION.round_two?.districts||[]).map(row=>[row.department+'-'+String(row.district_number).padStart(2,'0'),row]));const shown=PROJECTION.map.features.filter(metro).map(feature=>{const result=projectionProperties(feature);return result?{...feature,properties:{...feature.properties,...result,firstRoundBloc:result.bloc,round2:(()=>{const r=roundTwoById.get(String(result.department)+'-'+String(result.district_number).padStart(2,'0'));return r?{...r,winner_bloc:r.representative_winner_bloc}:r})()}}:feature});proposalLayer=L.geoJSON({type:'FeatureCollection',features:shown},{style:f=>({color:'#504735',weight:.48,fillColor:'#ded4bd',fillOpacity:0}),onEachFeature:(f,l)=>{l.bindTooltip(tooltipContent(f.properties,true),{sticky:true,direction:'top',offset:[0,-5]});l.on('click',e=>handleDistrictClick(e,f))}}).addTo(map);requestAnimationFrame(()=>addHatches(proposalLayer));if(currentLayer)currentLayer.setStyle({fillOpacity:.05,opacity:.25});setTimeView(true);$('#results').hidden=false;$('#results-cue').hidden=false;$('#map-scenario').hidden=false;$('#map-scenario').textContent='Scénario exploratoire · votes de 2024';$('#proposal-error').hidden=true;map.invalidateSize();proposalVisible=true;renderComparison(PROJECTION);applyProposalRound(proposalRound);loadDepartmentMapNote();proposalTransitionTimer=setTimeout(()=>{if(!proposalVisible||!proposalLayer)return;if(currentLayer){map.removeLayer(currentLayer);currentLayer=null}if(selectedDepartment)applyDepartmentStyles(proposalLayer);else map.fitBounds(proposalLayer.getBounds(),{...mapPadding(),animate:!matchMedia('(prefers-reduced-motion: reduce)').matches,duration:.7})},700)}catch(error){console.error(error);$('#proposal-error').hidden=false;if(proposalLayer){map.removeLayer(proposalLayer);proposalLayer=null}resetCurrent()}}
 async function showPartisan(){
   try{
     const [projection,layout,data]=await Promise.all([ensureProjection(),HEMICYCLE_LAYOUT?Promise.resolve(HEMICYCLE_LAYOUT):load('hemicycle-layout.js'),PARTISAN?Promise.resolve(PARTISAN):load('partisan-scenarios.js')]);
@@ -87,7 +87,7 @@ async function showPartisan(){
     const features=originals.concat(s.features.features.filter(metro)).map(f=>{const row=s.districts[f.properties.map_id];return {...f,properties:{...f.properties,estimated:!!row,firstRoundBloc:row?.first_bloc||'unknown',round2:{estimated:!!row?.estimated,winner_bloc:row?.runoff_bloc||'unknown'}}}});
     proposalLayer=L.geoJSON({type:'FeatureCollection',features},{style:()=>({color:'#504735',weight:.48,fillColor:'#ded4bd',fillOpacity:.94}),onEachFeature:(feature,layer)=>{layer.bindTooltip(tooltipContent(feature.properties,true),{sticky:true,direction:'top',offset:[0,-5]});layer.on('click',event=>handleDistrictClick(event,feature))}}).addTo(map);
     const sliderWasHidden=$('#partisan-control').hidden;
-    proposalVisible=true;viewMode='partisan';$('#view-today').setAttribute('aria-pressed','false');$('#view-tomorrow').setAttribute('aria-pressed','false');$('#view-partisan').setAttribute('aria-pressed','true');$('#partisan-control').hidden=false;if(sliderWasHidden)map.invalidateSize({pan:false});$('#partisan-slider').setAttribute('aria-valuetext',names[partisanChoice]);document.title='La carte fait loi · Partisane';
+    proposalVisible=true;viewMode='partisan';$('#view-today').setAttribute('aria-pressed','false');$('#view-tomorrow').setAttribute('aria-pressed','false');$('#view-partisan').setAttribute('aria-pressed','true');$('#partisan-control').hidden=false;if(sliderWasHidden)map.invalidateSize({pan:false});$('#partisan-slider').setAttribute('aria-valuetext',names[partisanChoice]);document.title='La carte fait loi · Partisane';loadDepartmentMapNote();
     $('#results').hidden=false;$('#results-cue').hidden=false;$('#map-scenario').hidden=false;$('#map-scenario').textContent='Scénario exploratoire · votes de 2024';$('#proposal-error').hidden=true;
     const before=PROJECTION.territorial_comparison.official, after=s.territorial_metrics||{};
     const specs=[{key:'population_max_abs_deviation_from_national_target',title:'Écart de population à la moyenne nationale, dans la circonscription la plus éloignée',format:v=>fmtPct(v,1),delta:v=>signedPoints(v,1)},{key:'compactness_loss_mean_1_minus_polsby_popper',title:'Circonscriptions aux formes allongées ou découpées',format:v=>fmtNum(v,3),delta:v=>(v>0?'+':'')+fmtNum(v,3)},{key:'epci_pooled_avoidable_ratio',title:'Fragmentation des intercommunalités',format:v=>fmtPct(v,1),delta:v=>signedPoints(v,1)}];
@@ -101,7 +101,7 @@ function resetCurrent(){
   if(proposalLayer){map.removeLayer(proposalLayer);proposalLayer=null}
   if(currentLayer){map.removeLayer(currentLayer);currentLayer=null}
   proposalVisible=false;paintCurrent(CURRENT.features,false);
-  setTimeView(false);$('#results').hidden=true;$('#results-cue').hidden=true;$('#map-scenario').hidden=true;map.invalidateSize();syncRoundSwitch();if(selectedDepartment)applyDepartmentStyles(currentLayer);else recenterMap();
+  setTimeView(false);$('#results').hidden=true;$('#results-cue').hidden=true;$('#map-scenario').hidden=true;renderDepartmentMapNote();map.invalidateSize();syncRoundSwitch();if(selectedDepartment)applyDepartmentStyles(currentLayer);else recenterMap();
   window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
 }
 
@@ -204,6 +204,41 @@ async function ensureProjection(){
   PROJECTION.officialFirstRoundById=PROJECTION.officialFirstRoundById||new Map(PROJECTION.official_first_round.map(row=>[row.department+'-'+String(row.district_number).padStart(2,'0'),row]));
   return PROJECTION;
 }
+function ensureDepartmentDistances(){
+  if(DEPARTMENT_DISTANCES)return Promise.resolve(DEPARTMENT_DISTANCES);
+  if(!distancePromise)distancePromise=load('department-distances.js').then(data=>(DEPARTMENT_DISTANCES=data)).catch(error=>{distancePromise=null;throw error});
+  return distancePromise;
+}
+function visibleProposalDepartmentCount(department){return proposalLayer?.getLayers().filter(layer=>departmentCode(layer.feature)===department).length||0}
+function currentDepartmentCount(department){return CURRENT.features.filter(feature=>departmentCode(feature)===department).length}
+function activeDepartmentDistance(){
+  if(!DEPARTMENT_DISTANCES)return null;
+  return viewMode==='neutral'?DEPARTMENT_DISTANCES.maps?.neutral:DEPARTMENT_DISTANCES.partisan?.[['lfi','left','centre','right','far_right'][partisanChoice]];
+}
+function renderDepartmentMapNote(){
+  const panel=$('#map-distance-panel');
+  const isProposal=proposalVisible&&(viewMode==='neutral'||viewMode==='partisan');
+  panel.hidden=!isProposal||!selectedDepartment;
+  if(panel.hidden)return;
+  const data=activeDepartmentDistance();
+  const name=departments.find(item=>item.code===selectedDepartment)?.name||selectedDepartment;
+  const row=data?.departments?.[selectedDepartment];
+  const currentCount=currentDepartmentCount(selectedDepartment),proposedCount=visibleProposalDepartmentCount(selectedDepartment);
+  $('#map-distance-department-name').textContent=name;
+  $('#map-distance-seat-count').textContent=currentCount+' siège'+(currentCount===1?'':'s')+' aujourd’hui · '+proposedCount+' proposé'+(proposedCount===1?'':'s');
+  $('#map-distance-department-score').textContent=row?'Moins remanié que '+row.closer_than_percent+' % des départements':data?'Classement non disponible':'Calcul…';
+}
+function renderDepartmentDistanceCard(unavailable=false){
+  const grid=$('#territory-grid');let card=$('#department-distance-card');
+  if(!card){card=document.createElement('article');card.id='department-distance-card';card.className='metric-card distance';card.innerHTML='<h4>Distance à la carte actuelle</h4><strong></strong><span class="metric-delta"></span>';grid.append(card)}
+  const data=activeDepartmentDistance();
+  card.querySelector('strong').textContent=data?fmtPct(data.department_average,1):unavailable?'Indisponible':'Calcul…';
+  card.querySelector('.metric-delta').textContent=data?'Moyenne égale des '+data.department_count+' départements · plus bas = plus proche':'Moyenne égale par département';
+}
+function loadDepartmentMapNote(){
+  renderDepartmentMapNote();renderDepartmentDistanceCard();
+  ensureDepartmentDistances().then(()=>{renderDepartmentMapNote();renderDepartmentDistanceCard()}).catch(error=>{console.error(error);renderDepartmentDistanceCard(true);if(selectedDepartment)$('#map-distance-department-score').textContent='Classement indisponible'});
+}
 function departmentCode(feature){return String(feature.properties.department||feature.properties.dept||'')}
 function normalizeDepartment(value){return value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('fr')}
 function populateDepartments(){
@@ -240,12 +275,13 @@ function selectDepartment(item){
   selectedDepartment=item.code;$('#department-query').value=item.name+' ('+item.code+')';$('#department-clear').hidden=false;$('#department-toggle').classList.add('has-selection');closeDepartmentPanel();$('#department-toggle').focus({preventScroll:true});
   applyDepartmentStyles(proposalVisible?proposalLayer:currentLayer);focusDepartment();
   const before=CURRENT.features.filter(f=>departmentCode(f)===item.code).length,summary=$('#department-summary');
-  summary.hidden=false;summary.textContent=before+' sièges aujourd’hui';
-  ensureProjection().then(data=>{if(selectedDepartment!==item.code)return;const after=data.map.features.filter(f=>departmentCode(f)===item.code).length;summary.textContent=before+' sièges aujourd’hui · '+after+' proposés'}).catch(()=>{});
+  const after=proposalVisible?visibleProposalDepartmentCount(item.code):0;
+  summary.hidden=false;summary.textContent=proposalVisible?before+' sièges aujourd’hui · '+after+' proposé'+(after===1?'':'s'):before+' sièges aujourd’hui';
+  renderDepartmentMapNote();
 }
 function clearDepartment(){
   selectedDepartment='';$('#department-query').value='';$('#department-clear').hidden=true;$('#department-summary').hidden=true;$('#department-toggle').classList.remove('has-selection');closeDepartmentPanel();
-  applyDepartmentStyles(proposalVisible?proposalLayer:currentLayer);recenterMap();
+  renderDepartmentMapNote();applyDepartmentStyles(proposalVisible?proposalLayer:currentLayer);recenterMap();
 }
 function handleDistrictClick(event,feature){
   L.DomEvent.stopPropagation(event);
