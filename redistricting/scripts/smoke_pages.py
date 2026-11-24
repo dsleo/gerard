@@ -54,7 +54,7 @@ with TemporaryDirectory() as temp:
             assert page.locator('#draft-scope').inner_text()
             assert not errors, errors
             failed = browser.new_page()
-            failed.route('**/projection-2026.js', lambda route: route.abort())
+            failed.route('**/projection-2026.js*', lambda route: route.abort())
             failed.goto(f'http://127.0.0.1:{server.server_port}/gerard/', wait_until='networkidle')
             failed.wait_for_function("!document.querySelector('#department-query').disabled")
             failed.locator('#view-tomorrow').click()

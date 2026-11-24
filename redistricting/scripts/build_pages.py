@@ -1,7 +1,6 @@
 """Package the saved atlas for GitHub Pages without rerunning any model.
 
-The deployment contains the webapp, its saved browser datasets, and the
-public methodology references. Raw inputs and optimization runs stay outside it.
+The deployment contains the webapp, its saved browser datasets,. Raw inputs and optimization runs stay outside it.
 """
 from __future__ import annotations
 
@@ -46,7 +45,6 @@ def build() -> Path:
         # Paths must remain inside the GitHub Pages repository prefix.
         content = content.replace("const DATA='../export/';", "const DATA='export/';")
         content = content.replace('src="../export/', 'src="export/')
-        content = content.replace('href="../../docs/', 'href="docs/')
         content = content.replace('href="../src/', 'href="source/')
         (OUTPUT / name).write_text(content, encoding="utf-8")
     shutil.copytree(WEBAPP / "vendor", OUTPUT / "vendor")
@@ -54,7 +52,6 @@ def build() -> Path:
         target = OUTPUT / "export/browser" / name
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(BROWSER / name, target)
-    shutil.copytree(ROOT / "docs/redistricting", OUTPUT / "docs/redistricting")
     for name in ("sample/recom.py", "optimize/sa.py", "sources.py"):
         target = OUTPUT / "source/redistrict" / name
         target.parent.mkdir(parents=True, exist_ok=True)

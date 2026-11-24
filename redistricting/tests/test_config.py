@@ -2,17 +2,16 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 
 import pytest
+import yaml
 
 from redistrict.config import ConfigError, load_config, parse_config
 
-EXAMPLE = Path(__file__).resolve().parents[2] / "docs" / "redistricting" / "config.example.yaml"
-
-
-def test_example_config_validates():
-    cfg = load_config(EXAMPLE)
+def test_example_config_validates(tmp_path):
+    example = tmp_path / "config.yaml"
+    example.write_text(yaml.safe_dump(_minimal(allocation={"method": "dhondt"})))
+    cfg = load_config(example)
     assert cfg.global_.total_seats == 577
     assert cfg.allocation.method == "dhondt"
     assert cfg.constraints.hard_pop_tolerance == 0.20

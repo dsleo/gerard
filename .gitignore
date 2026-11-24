@@ -30,3 +30,7 @@ redistricting/export/browser/*
 !redistricting/export/browser/hemicycle-layout.js
 !redistricting/export/browser/projection-2026.js
 !redistricting/export/browser/partisan-scenarios.js
+
+# Local research notes and design context
+/docs/
+/.impeccable.md
