@@ -275,8 +275,8 @@ function selectDepartment(item){
   selectedDepartment=item.code;$('#department-query').value=item.name+' ('+item.code+')';$('#department-clear').hidden=false;$('#department-toggle').classList.add('has-selection');closeDepartmentPanel();$('#department-toggle').focus({preventScroll:true});
   applyDepartmentStyles(proposalVisible?proposalLayer:currentLayer);focusDepartment();
   const before=CURRENT.features.filter(f=>departmentCode(f)===item.code).length,summary=$('#department-summary');
-  const after=proposalVisible?visibleProposalDepartmentCount(item.code):0;
-  summary.hidden=false;summary.textContent=proposalVisible?before+' sièges aujourd’hui · '+after+' proposé'+(after===1?'':'s'):before+' sièges aujourd’hui';
+  summary.hidden=false;summary.textContent=before+' sièges aujourd’hui';
+  ensureProjection().then(data=>{if(selectedDepartment!==item.code)return;const after=proposalVisible?visibleProposalDepartmentCount(item.code):data.map.features.filter(feature=>departmentCode(feature)===item.code).length;summary.textContent=before+' sièges aujourd’hui · '+after+' proposé'+(after===1?'':'s')}).catch(()=>{});
   renderDepartmentMapNote();
 }
 function clearDepartment(){

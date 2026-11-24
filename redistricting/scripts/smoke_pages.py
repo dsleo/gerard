@@ -44,6 +44,8 @@ with TemporaryDirectory() as temp:
             page.wait_for_selector('#results:not([hidden])')
             assert page.locator('#results-cue').is_visible()
             assert page.evaluate("selectedDepartment === '01'")
+            page.wait_for_function("!document.querySelector('#map-distance-panel').hidden && document.querySelector('#map-distance-department-score').textContent.includes('Moins remanié')")
+            page.wait_for_function("document.querySelector('#department-distance-card strong').textContent.includes('%')")
             page.wait_for_timeout(850)
             assert page.evaluate("proposalLayer.getLayers().some(l => departmentCode(l.feature) !== '01' && l.options.fillColor === '#b9b4a9')")
             page.locator('#view-today').click()
