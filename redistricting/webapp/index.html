@@ -32,9 +32,8 @@
 <div class="map-zoom" aria-label="Zoom de la carte"><button id="zoom-in" type="button" aria-label="Agrandir la carte">+</button><button id="zoom-out" type="button" aria-label="Réduire la carte">−</button></div>
 <div class="map-round-controls"><div class="slide-switch" id="round-switch" role="group" aria-label="Tour de l’élection"><span class="slide-thumb" aria-hidden="true"></span><button id="round-first" type="button" aria-pressed="false">1er tour 2024</button><button id="round-second" type="button" aria-pressed="true">2nd tour 2024</button></div></div>
 <div class="department-search" id="department-search"><button type="button" id="department-toggle" class="department-toggle" aria-label="Rechercher un département" aria-expanded="false" aria-controls="department-panel" title="Rechercher un département"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg></button><div id="department-panel" class="department-panel" hidden><label class="sr-only" for="department-query">Rechercher un département</label><div class="department-search-field"><span aria-hidden="true">⌕</span><input id="department-query" type="search" placeholder="Rechercher un département" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="department-options" aria-expanded="false" disabled><button type="button" id="department-clear" aria-label="Effacer le département sélectionné" hidden>×</button></div><ul id="department-options" role="listbox" hidden></ul><p id="department-summary" role="status" aria-live="polite" hidden></p></div></div>
-<div class="party-legend" id="party-legend" role="list" aria-label="Familles politiques"></div>
 <button id="recenter-map" class="map-control recenter" type="button" title="Recentrer la carte" aria-label="Recentrer la carte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><circle cx="12" cy="12" r="4"/></svg></button>
-<a href="#results" id="results-cue" class="results-cue" hidden>Voir la comparaison <span aria-hidden="true">↓</span></a>
+<a href="#results" id="results-cue" class="results-cue" aria-label="Voir la comparaison" hidden><span aria-hidden="true">↓</span></a>
 </main>
 <div class="scenario-control" id="partisan-control" hidden><label for="partisan-slider">Carte favorable à</label><div class="scenario-slider-wrap"><input id="partisan-slider" type="range" min="0" max="4" step="1" value="0" aria-label="Scénario partisan" aria-valuetext="Extrême gauche"><div class="scenario-ticks" aria-hidden="true"><span>Extrême gauche</span><span>Gauche</span><span>Centre</span><span>Droite</span><span>Extrême droite</span></div></div></div>
 </div>
@@ -73,6 +72,6 @@
 <button class="first-use-continue" id="first-use-continue" type="button">Explorer cette carte</button>
 </dialog>
 <script src="vendor/leaflet.js"></script>
-<script src="atlas.js?v=21"></script>
+<script src="atlas.js?v=24"></script>
 </body>
 </html>

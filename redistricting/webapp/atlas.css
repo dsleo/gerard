@@ -14,15 +14,12 @@ button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var
 .title-band{min-width:0;align-self:start}
 .title-band h1{width:100%;margin:0;text-align:center;text-transform:uppercase;font:600 clamp(26px,3vw,42px)/1.12 var(--display);letter-spacing:.045em;color:#25221c}
 .title-prefix{display:inline-block;margin-right:10px}
-.party-legend{position:absolute;z-index:500;left:50%;bottom:12px;transform:translateX(-50%);display:flex;align-items:center;gap:4px;width:max-content}
-.key-item{display:flex;align-items:center;gap:4px;width:auto;height:28px;border:0;padding:3px;background:transparent;color:var(--ink);font:9px var(--serif);white-space:nowrap}
 .swatch{display:block;width:20px;height:14px;border:1px solid #4f493d;background-color:var(--family);background-image:var(--hatch,none);transition:transform .15s}
-.key-item:hover .swatch{transform:scale(1.12)}
 .time-switch{display:inline-flex;vertical-align:middle;gap:3px;padding:4px;border:1px solid #8e826a;border-radius:5px;background:#ded4bd}
 .time-switch button{padding:7px 12px;border:0;border-radius:2px;background:transparent;color:#756b58;font:500 .66em/1.1 var(--display);text-transform:uppercase;letter-spacing:.04em}
 .time-switch button[aria-pressed="true"]{color:#f3ead7;background:#3c514d;box-shadow:0 1px 3px #302c2422}
 .time-switch button:disabled{opacity:.6;cursor:progress}
-.map-round-controls{position:absolute;z-index:500;top:12px;left:12px;display:flex;align-items:center}
+.map-round-controls{position:absolute;z-index:500;top:auto;right:auto;bottom:12px;left:50%;transform:translateX(-50%);display:flex;align-items:center}
 
 /* Two-position sliding controls. */
 .slide-switch{position:relative;isolation:isolate;display:inline-grid;grid-template-columns:1fr 1fr;padding:4px;gap:0;background:#e2d8c4;border:1px solid #8e826a;border-radius:5px}
@@ -32,7 +29,7 @@ button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var
 .slide-switch.first-selected .slide-thumb{transform:translateX(0)}
 
 /* Map and district tooltips. */
-.map-round-controls .slide-switch button{padding:7px 10px;font-size:11px}
+.map-round-controls .slide-switch button{min-height:44px;padding:7px 10px;font-size:11px}
 .map-frame{min-height:0;position:relative;overflow:hidden;background:var(--paper);border:1px solid #645a47}
 #map{position:absolute;inset:0;background:var(--paper)}
 .leaflet-container{font-family:var(--serif);background:var(--paper)}
@@ -133,7 +130,7 @@ button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var
 @media(max-width:760px){
   body{padding:8px}.poster{width:calc(100vw - 16px);height:auto;min-height:calc(100vh - 16px);padding:15px 11px;grid-template-rows:max-content minmax(480px,1fr)}
   .title-band h1{font-size:clamp(25px,6vw,36px)}.title-prefix{display:block;margin:0 0 10px}
-  .map-round-controls{top:10px;left:10px}.map-round-controls .slide-switch button{font-size:10px;padding:7px 8px}
+  .map-round-controls .slide-switch button{font-size:10px;padding:7px 8px}
   .recenter{right:10px;top:10px;width:34px;height:34px;padding:6px}
   .results{width:calc(100vw - 16px);padding:18px 12px}.territory-grid{grid-template-columns:1fr}
   .mmd-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mmd-card strong{font-size:22px}
@@ -191,10 +188,10 @@ button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var
 .map-zoom button+button{border-top:1px solid #bdb198}
 .map-error{position:absolute;z-index:800;inset:0;display:grid;place-content:center;gap:12px;text-align:center;background:var(--paper);font:15px/1.5 var(--serif)}
 .map-error button{padding:10px;background:#3c514d;color:#f3ead7;border:0;font:inherit}
-.results-cue{position:absolute;z-index:600;right:12px;bottom:12px;padding:9px 12px;background:#3c514d;color:#f3ead7;text-decoration:none;font:12px var(--serif)}
-.results-cue span{display:inline-block;margin-left:4px;animation:cue-down 1s ease-in-out 3}
+.results-cue{position:absolute;z-index:600;right:12px;bottom:8px;display:grid;place-items:center;width:44px;height:52px;border:0;background:transparent;color:#3c514d;text-decoration:none;font:24px/1 var(--serif)}
+.results-cue span{display:inline-block;animation:cue-down 1s ease-in-out 3}
 @keyframes cue-down{50%{transform:translateY(4px)}}
-@media(max-width:760px){.map-zoom{top:55px;right:10px}.results-cue{right:10px;bottom:48px}.map-round-controls .slide-switch button{font-size:12px;min-height:44px}.recenter{width:44px;height:44px}.key-item{width:36px;height:44px;justify-content:center}.key-name{display:none}.party-legend{bottom:4px}}
+@media(max-width:760px){.map-zoom{top:55px;right:10px}.results-cue{right:10px;bottom:8px}.map-round-controls{top:auto;right:auto;bottom:8px;left:50%;transform:translateX(-50%)}.map-round-controls .slide-switch button{font-size:12px}.recenter{width:44px;height:44px}}
 @media(prefers-reduced-motion:reduce){.results-cue span{animation:none}}
 
 
@@ -212,13 +209,12 @@ button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var
 #department-options{max-height:min(280px,40vh);overflow:auto;list-style:none;margin:3px 0 0;padding:4px 0;border:1px solid #8e826a;background:#f2ead8;box-shadow:0 3px 8px #302c2426}
 #department-options li{padding:9px 11px}#department-options li[role=option]{cursor:pointer}#department-options li[role=option]:hover,#department-options li[aria-selected=true]{background:#ded4bd}
 .department-empty{color:#756b58}#department-summary{display:inline-block;margin:4px 0 0;padding:5px 8px;background:#f2ead8;border:1px solid #bdb198;font:11px/1.4 var(--serif)}
-@media(max-width:760px){.department-search{top:137px;right:10px}.department-toggle{width:44px;height:44px}.department-panel{right:52px;width:min(250px,calc(100vw - 100px))}.department-search-field{min-height:44px}.department-search input{font-size:13px}}
+@media(max-width:760px){.department-search{top:152px;right:10px}.department-toggle{width:44px;height:44px}.department-panel{right:52px;width:min(250px,calc(100vw - 100px))}.department-search-field{min-height:44px}.department-search input{font-size:13px}}
 
 /* Publication pass: clear mobile legend, touch targets, and first-load feedback. */
 .map-loading{position:absolute;z-index:700;inset:0;display:flex;align-items:center;justify-content:center;gap:12px;background:var(--paper);color:#514a3d;font:14px/1.5 var(--serif)}
 .loading-mark{width:20px;height:20px;border:2px solid #bdb198;border-top-color:#3c514d;border-radius:50%;animation:map-spin .8s linear infinite}
 @keyframes map-spin{to{transform:rotate(360deg)}}
-.key-item{cursor:default}
 .first-use-dialog{width:min(360px,calc(100vw - 36px));padding:24px 24px 20px;text-align:center;border-color:#c8bda7;box-shadow:0 4px 18px #302c2418}
 .first-use-dialog::backdrop{background:#28251f35;backdrop-filter:none}
 .first-use-dialog h2{margin:0 auto 16px;max-width:24ch;color:#514a3d;font:600 clamp(18px,3.5vw,22px)/1.35 var(--serif)}
@@ -227,11 +223,6 @@ button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var
 @media(max-width:760px){
   .time-switch button{min-height:44px;padding:9px 12px}
   .map-zoom button{width:44px;height:44px}
-  .party-legend{left:8px;right:8px;bottom:8px;transform:none;width:auto;justify-content:center;flex-wrap:wrap;gap:2px 8px;padding:6px 8px;background:#e9dfcceF;border:1px solid #bdb198}
-  .party-legend>div{flex:0 0 auto}
-  .key-item{height:30px;width:auto;padding:3px 2px;gap:5px;font-size:9px}
-  .swatch{width:16px;height:12px}
-  .key-name{display:inline;color:#302c24}
 }
 @media(prefers-reduced-motion:reduce){.loading-mark{animation:none}}
 
