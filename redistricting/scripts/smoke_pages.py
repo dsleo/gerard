@@ -40,6 +40,7 @@ with TemporaryDirectory() as temp:
             page.locator('#round-first').click()
             page.wait_for_function("document.querySelector('#round-first').getAttribute('aria-pressed') === 'true'")
             page.locator('#view-tomorrow').click()
+            page.get_by_role('button', name='Explorer cette carte').click()
             page.wait_for_selector('#results:not([hidden])')
             assert page.locator('#results-cue').is_visible()
             assert page.evaluate("selectedDepartment === '01'")
@@ -58,6 +59,7 @@ with TemporaryDirectory() as temp:
             failed.goto(f'http://127.0.0.1:{server.server_port}/gerard/', wait_until='networkidle')
             failed.wait_for_function("!document.querySelector('#department-query').disabled")
             failed.locator('#view-tomorrow').click()
+            failed.get_by_role('button', name='Explorer cette carte').click()
             failed.wait_for_selector('#proposal-error:not([hidden])')
             assert failed.locator('#view-today').get_attribute('aria-pressed') == 'true'
             assert failed.locator('.leaflet-interactive').count() > 500
