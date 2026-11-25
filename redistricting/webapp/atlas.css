@@ -228,7 +228,7 @@ button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var
 .welcome-kicker{margin:0 0 12px;color:#82765f;font:10px/1.5 var(--mono);letter-spacing:.1em;text-transform:uppercase}
 .welcome-dialog h2{margin:0;font:600 clamp(30px,6vw,48px)/1.08 var(--display);letter-spacing:.015em;text-transform:uppercase}
 .welcome-lead{max-width:38ch;margin:17px 0 26px;color:#554d40;font:15px/1.75 var(--serif)}
-.welcome-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px 18px}
+.welcome-actions{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px 18px;text-align:center}
 .welcome-actions button{min-height:44px;padding:10px 15px;border:1px solid #81745c;background:#3c514d;color:#f3ead7;font:500 12px/1.2 var(--display);letter-spacing:.035em}
 .welcome-actions button:hover{background:#2f4542}
 .welcome-actions #welcome-skip{border-color:transparent;background:transparent;color:#554d40;text-decoration:underline;text-underline-offset:4px}
@@ -252,7 +252,7 @@ button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var
 .tour-actions .tour-next:hover{background:#2f4542}
 .tour-actions button:disabled{opacity:.55;cursor:wait}
 .tour-actions button[hidden]{display:none}
-@media(max-width:520px){.welcome-dialog{padding:27px 22px}.welcome-actions{align-items:stretch;flex-direction:column}.welcome-actions button{width:100%}.welcome-actions #welcome-skip{width:auto;align-self:flex-start}.tour-card{padding:15px 16px 12px}.tour-card h2{font-size:19px}.tour-actions button{min-height:42px}}
+@media(max-width:520px){.welcome-dialog{padding:27px 22px}.welcome-actions{align-items:center;flex-direction:row}.welcome-actions button{width:auto}.welcome-actions #welcome-skip{align-self:auto}.tour-card{padding:15px 16px 12px}.tour-card h2{font-size:19px}.tour-actions button{min-height:42px}}
 @media(prefers-reduced-motion:reduce){.tour-card{animation:none}.tour-spotlight{transition:none}}
 @media(max-width:760px){
   .time-switch button{min-height:44px;padding:9px 12px}

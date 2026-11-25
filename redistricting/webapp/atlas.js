@@ -19,7 +19,7 @@ const GUIDED_TOUR_STEPS=[
   {target:'#view-tomorrow',title:'Une carte électorale mieux équilibrée ?',description:'On cherche un compromis entre trois critères : rapprocher la population des circonscriptions, garder des formes compactes et éviter de séparer les communes d’une même intercommunalité.'},
   {target:'#view-partisan',title:'Et si le découpage favorisait un camp ?',description:'On repart des résultats de 2024 pour chercher une carte où une famille politique pourrait obtenir plus de sièges.'},
   {target:'#partisan-control .scenario-slider-wrap',title:'Choisissez le camp à favoriser',description:''},
-  {target:'#department-query',title:'Chercher un département',description:'Saisissez un nom, puis choisissez le résultat. La carte zoome sur le département choisi.'},
+  {target:'#department-query',title:'Chercher un département',description:'La carte zoome sur le département choisi.'},
   {target:'#map',title:'Un département à la loupe',description:''}
 ];
 function family(group){return FAMILY_BY_GROUP.get(group)||FAMILY_BY_BLOC.get(group)||FAMILY_DEFS[6]}
