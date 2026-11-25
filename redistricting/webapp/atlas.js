@@ -13,6 +13,15 @@ const FAMILY_DEFS=[
 const FAMILY_BY_GROUP=new Map(FAMILY_DEFS.flatMap(f=>f.groups.map(g=>[g,f])));
 const FAMILY_BY_BLOC=new Map([['lfi',FAMILY_DEFS[0]],['left',FAMILY_DEFS[1]],['centre',FAMILY_DEFS[2]],['right',FAMILY_DEFS[3]],['far_right',FAMILY_DEFS[4]],['other',FAMILY_DEFS[6]]]);
 let CURRENT=null,ELECTION=null,HEMICYCLE_LAYOUT=null,PROJECTION=null,PARTISAN=null,DEPARTMENT_DISTANCES=null,distancePromise=null,viewMode='current',partisanChoice=0,map,currentLayer=null,proposalLayer=null,proposalVisible=false,officialRound=2,proposalRound=2,cache={},toastTimer,proposalTransitionTimer,assemblyView="projected",assemblyGroups=new Map(),selectedDepartment="",departments=[],activeDepartmentOption=-1;
+let guidedTourActive=false,guidedTourStep=0,guidedTourFrame=0,guidedTourReturnFocus=null;
+const GUIDED_TOUR_STEPS=[
+  {target:'#map',title:'Commencez par la carte',description:'Chaque contour est une circonscription. Sa couleur montre le résultat du tour sélectionné. Cliquez sur une circonscription pour en voir le détail.'},
+  {target:'#view-tomorrow',title:'Une carte électorale mieux équilibrée ?',description:'On cherche un compromis entre trois critères : rapprocher la population des circonscriptions, garder des formes compactes et éviter de séparer les communes d’une même intercommunalité.'},
+  {target:'#view-partisan',title:'Et si le découpage favorisait un camp ?',description:'On repart des résultats de 2024 pour chercher une carte où une famille politique pourrait obtenir plus de sièges.'},
+  {target:'#partisan-control .scenario-slider-wrap',title:'Choisissez le camp à favoriser',description:''},
+  {target:'#department-query',title:'Chercher un département',description:'Saisissez un nom, puis choisissez le résultat. La carte zoome sur le département choisi.'},
+  {target:'#map',title:'Un département à la loupe',description:''}
+];
 function family(group){return FAMILY_BY_GROUP.get(group)||FAMILY_BY_BLOC.get(group)||FAMILY_DEFS[6]}
 async function load(file){const key=file==='election-2024.js'?'election-2024':file==='current-assembly.js'?'current-assembly':file==='hemicycle-layout.js'?'hemicycle-layout':file==='projection-2026.js'?'projection-2026':file==='partisan-scenarios.js'?'partisan-scenarios':file==='department-distances.js'?'department-distances':file.startsWith('maps/')?'map:'+file.split('/')[1].replace('.geojson',''):null;if(!key)throw Error('Donnée inconnue: '+file);if(cache[key])return cache[key];const src=key==='election-2024'?DATA+'browser/election-2024.js?v=12':key==='current-assembly'?DATA+'browser/current-assembly.js':key==='hemicycle-layout'?DATA+'browser/hemicycle-layout.js':key==='projection-2026'?DATA+'browser/projection-2026.js?v=9':key==='partisan-scenarios'?DATA+'browser/partisan-scenarios.js?v=9':key==='department-distances'?DATA+'browser/department-distances.js?v=2':DATA+'browser/maps/'+key.slice(4)+'.js';cache[key]=new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=src;script.onload=async()=>{try{const value=await window.REDISTRICTING_DATA?.[key];if(value)resolve(value);else reject(Error('Donnée absente: '+key))}catch(e){reject(e)}};script.onerror=()=>{delete cache[key];reject(Error('Impossible de lire '+src))};document.head.appendChild(script)});return cache[key]}
 function metro(feature){const d=String(feature.properties.department||feature.properties.dept||'');return Number(d)<96||d==='2A'||d==='2B'}
@@ -272,8 +281,13 @@ function renderDepartmentOptions(){
   list.hidden=false;$('#department-query').setAttribute('aria-expanded','true');
 }
 function selectDepartment(item){
-  selectedDepartment=item.code;$('#department-query').value=item.name+' ('+item.code+')';$('#department-clear').hidden=false;$('#department-toggle').classList.add('has-selection');closeDepartmentPanel();$('#department-toggle').focus({preventScroll:true});
-  applyDepartmentStyles(proposalVisible?proposalLayer:currentLayer);focusDepartment();
+  const keepSearchOpen=guidedTourActive&&guidedTourStep===4;
+  selectedDepartment=item.code;$('#department-query').value=item.name+' ('+item.code+')';$('#department-clear').hidden=false;$('#department-toggle').classList.add('has-selection');closeDepartmentPanel();
+  if(keepSearchOpen){$('#department-panel').hidden=false;$('#department-toggle').setAttribute('aria-expanded','true')}
+  $('#department-toggle').focus({preventScroll:true});
+  applyDepartmentStyles(proposalVisible?proposalLayer:currentLayer);
+  if(!keepSearchOpen)focusDepartment();
+  if(keepSearchOpen)$('#tour-next').disabled=false;
   const before=CURRENT.features.filter(f=>departmentCode(f)===item.code).length,summary=$('#department-summary');
   summary.hidden=false;summary.textContent=before+' sièges aujourd’hui';
   ensureProjection().then(data=>{if(selectedDepartment!==item.code)return;const after=proposalVisible?visibleProposalDepartmentCount(item.code):data.map.features.filter(feature=>departmentCode(feature)===item.code).length;summary.textContent=before+' sièges aujourd’hui · '+after+' proposé'+(after===1?'':'s')}).catch(()=>{});
@@ -318,23 +332,155 @@ async function start(){
     $('#round-first').addEventListener('click',async()=>{try{await ensureProjection();setMapRound(1);applyDepartmentStyles(proposalVisible?proposalLayer:currentLayer)}catch(error){toast('Les résultats du premier tour sont indisponibles.')}});$('#round-second').addEventListener('click',()=>{setMapRound(2);applyDepartmentStyles(proposalVisible?proposalLayer:currentLayer)});
     $('#recenter-map').addEventListener('click',recenterMap);$('#zoom-in').addEventListener('click',()=>map.zoomIn());$('#zoom-out').addEventListener('click',()=>map.zoomOut());
     $('#results-cue').addEventListener('click',event=>{event.preventDefault();$('#results').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});$('#results-title').setAttribute('tabindex','-1');$('#results-title').focus({preventScroll:true})});
-    $('#view-partisan').addEventListener('click',()=>explainFirst('partisan',showPartisan));
+    $('#view-partisan').addEventListener('click',()=>explainFirst('partisan',selectPartisan));
     $('#footer-partisan').addEventListener('click',event=>{event.preventDefault();explainFirst('partisan',()=>{showPartisan();$('#atlas').scrollIntoView()})});
     $('#partisan-slider').addEventListener('input',event=>{partisanChoice=Number(event.target.value);showPartisan()});
     $('#view-today').addEventListener('click',()=>{if(proposalVisible)resetCurrent()});
-    $('#view-tomorrow').addEventListener('click',()=>explainFirst('neutral',async()=>{
-      if(viewMode==='neutral')return;if(viewMode==='partisan'){proposalVisible=false;if(proposalLayer)map.removeLayer(proposalLayer);proposalLayer=null}const button=$('#view-tomorrow');button.disabled=true;$('#view-today').disabled=true;button.setAttribute('aria-busy','true');
-      try{await showProposal()}finally{button.disabled=false;$('#view-today').disabled=false;button.removeAttribute('aria-busy')}
-    }));
+    $('#view-tomorrow').addEventListener('click',()=>explainFirst('neutral',selectNeutral));
     $('#assembly-current').addEventListener('click',()=>setAssemblyView('current'));
     $('#assembly-projected').addEventListener('click',()=>setAssemblyView('projected'));
     bindInfoDialog('mmd-info','mmd-dialog');bindInfoDialog('round2-info','round2-dialog');
     if(new URLSearchParams(location.search).get('view')==='neutral') await showProposal();
     load('partisan-scenarios.js').then(data=>{PARTISAN=data}).catch(()=>{});
     bindHemicycleTooltip();window.addEventListener('resize',()=>{map.invalidateSize();if(selectedDepartment)focusDepartment();else recenterMap()});
+    bindGuidedTour();
+    let welcomeSeen=false;try{welcomeSeen=localStorage.getItem('gerard-welcome-seen')==='1'}catch{}
+    if(!welcomeSeen)$('#welcome-dialog').showModal();
   }catch(error){console.error(error);$('#map-loading').hidden=true;$('#map').setAttribute('aria-busy','false');$('#map-error').hidden=false}
 }
-const FIRST_USE={neutral:{title:'Peut-on mieux découper le territoire ?'},partisan:{title:'Un découpage peut-il avantager un camp ?'}};
+async function selectNeutral(){
+  if(viewMode==='neutral')return;
+  if(viewMode==='partisan'){proposalVisible=false;if(proposalLayer)map.removeLayer(proposalLayer);proposalLayer=null}
+  const button=$('#view-tomorrow');button.disabled=true;$('#view-today').disabled=true;button.setAttribute('aria-busy','true');
+  try{await showProposal()}finally{button.disabled=false;$('#view-today').disabled=false;button.removeAttribute('aria-busy')}
+}
+async function selectPartisan(){
+  const button=$('#view-partisan');button.disabled=true;button.setAttribute('aria-busy','true');
+  try{await showPartisan()}finally{button.disabled=false;button.removeAttribute('aria-busy')}
+}
+function bindGuidedTour(){
+  const welcome=$('#welcome-dialog'),tour=$('#guided-tour'),card=$('#tour-card');
+  const markWelcomeSeen=()=>{try{localStorage.setItem('gerard-welcome-seen','1')}catch{}};
+  $('#welcome-start').addEventListener('click',()=>{markWelcomeSeen();welcome.close();startGuidedTour($('#view-today'))});
+  $('#welcome-skip').addEventListener('click',()=>{markWelcomeSeen();welcome.close()});
+  welcome.addEventListener('cancel',markWelcomeSeen);
+  $('#replay-tour').addEventListener('click',event=>{event.preventDefault();startGuidedTour(event.currentTarget)});
+  document.addEventListener('click',event=>{
+    if(!guidedTourActive||card.contains(event.target))return;
+    if(event.target.closest('#replay-tour,#welcome-start,#welcome-skip'))return;
+    if(guidedTourStep===4&&$('#department-search').contains(event.target))return;
+    endGuidedTour();
+  });
+  $('#tour-close').addEventListener('click',endGuidedTour);
+  $('#tour-back').addEventListener('click',()=>setGuidedTourStep(guidedTourStep-1));
+  $('#tour-next').addEventListener('click',()=>{
+    if(guidedTourStep===GUIDED_TOUR_STEPS.length-1){endGuidedTour();return}
+    if(guidedTourStep===4&&!selectedDepartment){
+      const query=normalizeDepartment($('#department-query').value.trim());
+      const department=query?departments.find(item=>normalizeDepartment(item.name+' ('+item.code+')').includes(query)||item.code.toLowerCase().includes(query)):null;
+      const fallback=departments.find(item=>String(item.code)==='33')||departments[0];
+      if(department||fallback)selectDepartment(department||fallback);
+    }
+    setGuidedTourStep(guidedTourStep+1);
+  });
+  document.addEventListener('keydown',event=>{
+    if(!guidedTourActive)return;
+    if(event.key==='Escape'){event.preventDefault();endGuidedTour();return}
+    if(event.key==='Tab'){
+      const searchInput=guidedTourStep===4?$('#department-query'):null;
+      const focusable=[...(searchInput?[searchInput]:[]),...card.querySelectorAll('button:not([disabled])')],activeIndex=focusable.indexOf(document.activeElement);
+      if(activeIndex<0){event.preventDefault();(event.shiftKey?focusable.at(-1):focusable[0]).focus()}
+      else if(event.shiftKey&&activeIndex===0){event.preventDefault();focusable.at(-1).focus()}
+      else if(!event.shiftKey&&activeIndex===focusable.length-1){event.preventDefault();focusable[0].focus()}
+      else{event.preventDefault();focusable[activeIndex+(event.shiftKey?-1:1)].focus()}
+    }
+  });
+  window.addEventListener('resize',scheduleTourPosition);
+  window.addEventListener('scroll',scheduleTourPosition,true);
+}
+function startGuidedTour(returnFocus){
+  resetGuidedTourMap();guidedTourReturnFocus=returnFocus||document.activeElement;guidedTourActive=true;guidedTourStep=0;$('#guided-tour').hidden=false;
+  $('#atlas').scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});setGuidedTourStep(0);
+}
+function resetGuidedTourMap(){
+  selectedDepartment='';$('#department-query').value='';$('#department-clear').hidden=true;$('#department-summary').hidden=true;$('#department-toggle').classList.remove('has-selection');closeDepartmentPanel();
+  partisanChoice=0;$('#partisan-slider').value='0';$('#partisan-slider').setAttribute('aria-valuetext','Extrême gauche');officialRound=2;proposalRound=2;
+  resetCurrent();
+}
+function endGuidedTour(){
+  guidedTourActive=false;$('#guided-tour').hidden=true;resetGuidedTourMap();
+  const fallback=$('#view-today');if(guidedTourReturnFocus?.isConnected&&!guidedTourReturnFocus.closest('[hidden]'))guidedTourReturnFocus.focus({preventScroll:true});else fallback.focus({preventScroll:true});
+}
+function setGuidedTourStep(index){
+  guidedTourStep=Math.max(0,Math.min(index,GUIDED_TOUR_STEPS.length-1));
+  const step=GUIDED_TOUR_STEPS[guidedTourStep],target=$(step.target);
+  $('#tour-card').classList.toggle('tour-search-step',step.target==='#department-query');
+  $('#tour-card').classList.toggle('tour-department-step',guidedTourStep===5);
+  $('#tour-count').textContent=String(guidedTourStep+1).padStart(2,'0')+' / '+String(GUIDED_TOUR_STEPS.length).padStart(2,'0');
+  $('#tour-title').textContent=step.title;
+  const selectedName=departments.find(item=>item.code===selectedDepartment)?.name;
+  const description=guidedTourStep===0&&viewMode==='neutral'?'La carte montre les résultats de 2024 reportés sur le découpage neutre. Cliquez une circonscription pour en voir le détail.':guidedTourStep===0&&viewMode==='partisan'?'La couleur montre le bloc dont le modèle estime qu’il remporterait chaque circonscription dans ce scénario partisan.':guidedTourStep===5&&selectedName?'La carte zoome sur '+selectedName+' et ses circonscriptions.':step.description;
+  $('#tour-description').textContent=description;
+  $('#tour-back').hidden=guidedTourStep===0;
+  $('#tour-next').setAttribute('aria-label',guidedTourStep===GUIDED_TOUR_STEPS.length-1?'Terminer la visite':'Étape suivante');
+  $('#tour-back').disabled=false;$('#tour-next').disabled=false;
+  if(guidedTourStep===4){showDepartmentTourDemo()}
+  else if(guidedTourStep===5){closeDepartmentPanel();prepareDepartmentFocusStep()}
+  else if(!$('#department-panel').hidden)closeDepartmentPanel();
+  if(target)target.scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+  scheduleTourPosition();requestAnimationFrame(()=>$('#tour-next').focus({preventScroll:true}));
+  prepareGuidedTourMap(guidedTourStep);
+}
+function prepareGuidedTourMap(index){
+  const expected=index===1?'neutral':index===2?'partisan':null;
+  if(!expected||viewMode===expected)return;
+  const transition=expected==='neutral'?selectNeutral():selectPartisan();
+  $('#tour-back').disabled=true;$('#tour-next').disabled=true;$('#tour-next').setAttribute('aria-busy','true');
+  Promise.resolve(transition).then(()=>{
+    if(!guidedTourActive||guidedTourStep!==index)return;
+    if(viewMode===expected){try{localStorage.setItem('gerard-first-use-'+expected,'1')}catch{}}
+    else $('#tour-description').textContent=expected==='neutral'?'La carte neutre est indisponible pour le moment. Vous pouvez continuer la visite ou la fermer.':'La carte partisane est indisponible pour le moment. Vous pouvez continuer la visite ou la fermer.';
+  }).finally(()=>{
+    if(!guidedTourActive||guidedTourStep!==index)return;
+    $('#tour-back').disabled=false;$('#tour-next').disabled=false;$('#tour-next').removeAttribute('aria-busy');scheduleTourPosition();
+  });
+}
+function showDepartmentTourDemo(){
+  const panel=$('#department-panel'),toggle=$('#department-toggle'),input=$('#department-query');
+  panel.hidden=false;toggle.setAttribute('aria-expanded','true');
+  input.value=departments.find(item=>item.code===selectedDepartment)?.name||'Gironde';renderDepartmentOptions();
+  requestAnimationFrame(()=>input.focus({preventScroll:true}));
+}
+function prepareDepartmentFocusStep(){
+  if(!selectedDepartment)return;
+  $('#tour-next').disabled=true;
+  const finish=()=>{if(guidedTourActive&&guidedTourStep===5)$('#tour-next').disabled=false};
+  map.once('moveend',finish);focusDepartment();setTimeout(finish,700);
+}
+function scheduleTourPosition(){if(!guidedTourActive)return;cancelAnimationFrame(guidedTourFrame);guidedTourFrame=requestAnimationFrame(positionGuidedTour)}
+function positionGuidedTour(){
+  const step=GUIDED_TOUR_STEPS[guidedTourStep],target=$(step.target),spot=$('#tour-spotlight'),card=$('#tour-card');
+  if(!target||target.hidden)return;
+  let rect=target.getBoundingClientRect();
+  if(step.target==='#results-title'){const range=document.createRange();range.selectNodeContents(target);rect=range.getBoundingClientRect()}
+  const tight=step.target==='#view-tomorrow'||step.target==='#view-partisan'||step.target==='#partisan-control .scenario-slider-wrap',pad=step.target==='#map'||tight?0:5;
+  spot.style.left=Math.max(4,rect.left-pad)+'px';spot.style.top=Math.max(4,rect.top-pad)+'px';spot.style.width=Math.min(innerWidth-8,rect.width+pad*2)+'px';spot.style.height=Math.min(innerHeight-8,rect.height+pad*2)+'px';
+  const cardRect=card.getBoundingClientRect(),large=rect.width*rect.height>innerWidth*innerHeight*.32;
+  let left,top;
+  if(step.target==='#results-title'){
+    left=Math.max(14,(innerWidth-cardRect.width)/2);top=16;
+  }
+  else if(step.target==='#department-query'){
+    left=14;top=14;
+  }
+  else if(guidedTourStep===5){
+    left=Math.max(14,innerWidth-cardRect.width-14);top=14;
+  }
+  else if(large){left=Math.max(14,Math.min(innerWidth-cardRect.width-14,rect.left+18));top=Math.max(14,Math.min(innerHeight-cardRect.height-14,rect.top+18))}
+  else{left=Math.max(14,Math.min(innerWidth-cardRect.width-14,rect.left+rect.width/2-cardRect.width/2));top=rect.bottom+cardRect.height+18<innerHeight?rect.bottom+14:Math.max(14,rect.top-cardRect.height-14)}
+  card.style.left=left+'px';card.style.top=top+'px';
+}
+const FIRST_USE={neutral:{title:'Que veut dire « mieux équilibrée » ?'},partisan:{title:'Et si le découpage favorisait un camp ?'}};
 function explainFirst(kind,action){
   let seen=false;try{seen=localStorage.getItem('gerard-first-use-'+kind)==='1'}catch{}
   if(seen){action();return}

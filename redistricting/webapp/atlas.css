@@ -223,6 +223,37 @@ button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var
 .first-use-dialog h2{margin:0 auto 16px;max-width:24ch;color:#514a3d;font:600 clamp(18px,3.5vw,22px)/1.35 var(--serif)}
 .first-use-continue{display:block;min-height:40px;margin:0 auto;padding:9px 15px;border:1px solid #9c917c;background:#e5dcc9;color:#514a3d;font:500 11px/1.2 var(--display);letter-spacing:.035em}
 .first-use-continue:hover{background:#dcd1bb}
+.welcome-dialog{width:min(530px,calc(100vw - 32px));padding:clamp(26px,5vw,44px);border:2px double #645a47;border-radius:0;background:#eee8d8;color:var(--ink);box-shadow:8px 10px 0 #302c2426;text-align:left}
+.welcome-dialog::backdrop{background:#28251f70;backdrop-filter:blur(2px)}
+.welcome-kicker{margin:0 0 12px;color:#82765f;font:10px/1.5 var(--mono);letter-spacing:.1em;text-transform:uppercase}
+.welcome-dialog h2{margin:0;font:600 clamp(30px,6vw,48px)/1.08 var(--display);letter-spacing:.015em;text-transform:uppercase}
+.welcome-lead{max-width:38ch;margin:17px 0 26px;color:#554d40;font:15px/1.75 var(--serif)}
+.welcome-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px 18px}
+.welcome-actions button{min-height:44px;padding:10px 15px;border:1px solid #81745c;background:#3c514d;color:#f3ead7;font:500 12px/1.2 var(--display);letter-spacing:.035em}
+.welcome-actions button:hover{background:#2f4542}
+.welcome-actions #welcome-skip{border-color:transparent;background:transparent;color:#554d40;text-decoration:underline;text-underline-offset:4px}
+.welcome-actions #welcome-skip:hover{color:#25221c}
+.guided-tour{position:fixed;z-index:1400;inset:0;pointer-events:none}
+.tour-spotlight{position:fixed;z-index:0;border:2px solid #f2ead8;box-shadow:0 0 0 9999px #28251f9c;pointer-events:none;transition:left .32s cubic-bezier(.22,1,.36,1),top .32s cubic-bezier(.22,1,.36,1),width .32s cubic-bezier(.22,1,.36,1),height .32s cubic-bezier(.22,1,.36,1)}
+.tour-card{position:fixed;z-index:1;width:min(410px,calc(100vw - 28px));margin:0;padding:18px 20px 15px;border:1px solid #877a62;border-radius:2px;background:#eee8d8;color:var(--ink);box-shadow:5px 6px 0 #28251f3b;pointer-events:auto;animation:tour-enter .28s cubic-bezier(.22,1,.36,1) both}
+.tour-card.tour-search-step{width:min(340px,calc(100vw - 28px))}
+.tour-card.tour-department-step{width:min(360px,calc(100vw - 28px))}
+@keyframes tour-enter{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.tour-meta{display:flex;align-items:center;justify-content:space-between;color:#82765f;font:10px/1.3 var(--mono);letter-spacing:.08em}
+.tour-close{display:grid;place-items:center;width:32px;height:32px;margin:-8px -9px -5px 0;border:0;background:transparent;color:#554d40;font:25px/1 var(--serif)}
+.tour-close:hover{background:#ded4bd}
+.tour-card h2{margin:7px 24px 7px 0;font:600 21px/1.25 var(--serif);color:#302c24}
+.tour-card p{margin:0;color:#554d40;font:12px/1.7 var(--serif)}
+.tour-card p:empty{display:none}
+.tour-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin-top:15px;padding-top:11px;border-top:1px solid #c8bda7}
+.tour-actions button{display:grid;place-items:center;width:42px;min-height:38px;padding:6px;border:1px solid #a89b82;background:transparent;color:#514a3d;font:20px/1 var(--serif)}
+.tour-actions button:hover{background:#ded4bd}
+.tour-actions .tour-next{border-color:#3c514d;background:#3c514d;color:#f3ead7}
+.tour-actions .tour-next:hover{background:#2f4542}
+.tour-actions button:disabled{opacity:.55;cursor:wait}
+.tour-actions button[hidden]{display:none}
+@media(max-width:520px){.welcome-dialog{padding:27px 22px}.welcome-actions{align-items:stretch;flex-direction:column}.welcome-actions button{width:100%}.welcome-actions #welcome-skip{width:auto;align-self:flex-start}.tour-card{padding:15px 16px 12px}.tour-card h2{font-size:19px}.tour-actions button{min-height:42px}}
+@media(prefers-reduced-motion:reduce){.tour-card{animation:none}.tour-spotlight{transition:none}}
 @media(max-width:760px){
   .time-switch button{min-height:44px;padding:9px 12px}
   .map-zoom button{width:44px;height:44px}

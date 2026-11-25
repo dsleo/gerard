@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="vendor/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Special+Elite&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="atlas.css?v=13">
+<link rel="stylesheet" href="atlas.css?v=18">
 <link rel="stylesheet" href="scenarios.css?v=6">
 </head>
 <body>
@@ -48,7 +48,7 @@
 </section>
 
 </section>
-<footer class="app-footer"><a class="footer-brand" href="index.html">La carte fait loi<span>Un autre découpage, les mêmes voix.</span></a><nav aria-label="À propos du projet"><a href="#atlas" id="footer-partisan">Cartes partisanes</a><a href="method.html">Comment ça marche <span aria-hidden="true">↗</span></a></nav></footer>
+<footer class="app-footer"><a class="footer-brand" href="index.html">La carte fait loi<span>Un autre découpage, les mêmes voix.</span></a><nav aria-label="À propos du projet"><a href="#atlas" id="footer-partisan">Cartes partisanes</a><a href="#atlas" id="replay-tour">Faire le tour</a><a href="method.html">Comment ça marche <span aria-hidden="true">↗</span></a></nav></footer>
 
 <dialog class="info-dialog" id="mmd-dialog" aria-labelledby="mmd-dialog-title">
 <form method="dialog"><button class="dialog-close" aria-label="Fermer la formule du MMD" autofocus>×</button></form>
@@ -72,7 +72,21 @@
 <h2 id="first-use-title"></h2>
 <button class="first-use-continue" id="first-use-continue" type="button">Explorer cette carte</button>
 </dialog>
+<dialog class="welcome-dialog" id="welcome-dialog" aria-labelledby="welcome-title">
+<p class="welcome-kicker">Un atlas pour lire les frontières</p>
+<h2 id="welcome-title">La carte fait loi</h2>
+<p class="welcome-lead">Avec les mêmes votes, que changent d’autres façons de tracer les circonscriptions&nbsp;?</p>
+<div class="welcome-actions"><button id="welcome-start" type="button">Faire le tour · 1 min</button><button id="welcome-skip" type="button">Explorer librement</button></div>
+</dialog>
+<div class="guided-tour" id="guided-tour" hidden>
+<div class="tour-spotlight" id="tour-spotlight" aria-hidden="true"></div>
+<section class="tour-card" id="tour-card" role="dialog" aria-modal="true" aria-labelledby="tour-title" aria-describedby="tour-description">
+<div class="tour-meta"><span id="tour-count"></span><button class="tour-close" id="tour-close" type="button" aria-label="Fermer la visite">×</button></div>
+<h2 id="tour-title" aria-live="polite"></h2><p id="tour-description"></p>
+<div class="tour-actions"><button id="tour-back" type="button" aria-label="Étape précédente">←</button><button class="tour-next" id="tour-next" type="button" aria-label="Étape suivante">→</button></div>
+</section>
+</div>
 <script src="vendor/leaflet.js"></script>
-<script src="atlas.js?v=26"></script>
+<script src="atlas.js?v=40"></script>
 </body>
 </html>
