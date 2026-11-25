@@ -23,6 +23,7 @@ with TemporaryDirectory() as temp:
             page.on('pageerror', lambda error: errors.append(str(error)))
             page.goto(f'http://127.0.0.1:{server.server_port}/gerard/', wait_until='networkidle')
             page.wait_for_function("!document.querySelector('#department-query').disabled")
+            page.locator('#welcome-skip').click()
             assert page.locator('.leaflet-interactive').count() > 500
             assert not any('projection-2026.js' in url or 'hemicycle-layout.js' in url for url in requests)
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
@@ -60,6 +61,7 @@ with TemporaryDirectory() as temp:
             failed.route('**/projection-2026.js*', lambda route: route.abort())
             failed.goto(f'http://127.0.0.1:{server.server_port}/gerard/', wait_until='networkidle')
             failed.wait_for_function("!document.querySelector('#department-query').disabled")
+            failed.locator('#welcome-skip').click()
             failed.locator('#view-tomorrow').click()
             failed.get_by_role('button', name='Explorer cette carte').click()
             failed.wait_for_selector('#proposal-error:not([hidden])')
