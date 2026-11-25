@@ -12,7 +12,7 @@ const FAMILY_DEFS=[
 ];
 const FAMILY_BY_GROUP=new Map(FAMILY_DEFS.flatMap(f=>f.groups.map(g=>[g,f])));
 const FAMILY_BY_BLOC=new Map([['lfi',FAMILY_DEFS[0]],['left',FAMILY_DEFS[1]],['centre',FAMILY_DEFS[2]],['right',FAMILY_DEFS[3]],['far_right',FAMILY_DEFS[4]],['other',FAMILY_DEFS[6]]]);
-let CURRENT=null,ELECTION=null,HEMICYCLE_LAYOUT=null,PROJECTION=null,PARTISAN=null,DEPARTMENT_DISTANCES=null,distancePromise=null,viewMode='current',partisanChoice=0,map,currentLayer=null,proposalLayer=null,proposalVisible=false,officialRound=2,proposalRound=2,cache={},toastTimer,proposalTransitionTimer,assemblyView="projected",assemblyGroups=new Map(),selectedDepartment="",departments=[],activeDepartmentOption=-1;
+let CURRENT=null,ELECTION=null,HEMICYCLE_LAYOUT=null,PROJECTION=null,PARTISAN=null,PARTISAN_DISPLAY=null,DEPARTMENT_DISTANCES=null,distancePromise=null,viewMode='current',partisanChoice=0,map,currentLayer=null,proposalLayer=null,proposalVisible=false,officialRound=2,proposalRound=2,cache={},toastTimer,proposalTransitionTimer,assemblyView="projected",assemblyGroups=new Map(),selectedDepartment="",departments=[],activeDepartmentOption=-1;
 let guidedTourActive=false,guidedTourStep=0,guidedTourFrame=0,guidedTourReturnFocus=null;
 const GUIDED_TOUR_STEPS=[
   {target:'#map',title:'Commencez par la carte',description:'Chaque contour est une circonscription. Sa couleur montre le résultat du tour sélectionné. Cliquez sur une circonscription pour en voir le détail.'},
@@ -91,9 +91,21 @@ async function showPartisan(){
     PROJECTION=projection;HEMICYCLE_LAYOUT=layout;PARTISAN=data;
     clearTimeout(proposalTransitionTimer);
     if(proposalLayer)map.removeLayer(proposalLayer);if(currentLayer)map.removeLayer(currentLayer);
-    const names=['Extrême gauche','Gauche','Centre','Droite républicaine','Extrême droite'], s=data.scenarios[['lfi','left','centre','right','far_right'][partisanChoice]],changed=new Set(s.changed_departments);
-    const originals=CURRENT.features.filter(f=>metro(f)&&!changed.has(departmentCode(f))).map(f=>{const dep=departmentCode(f),number=localDistrictNumber(f.properties);return {...f,properties:{...f.properties,map_id:dep+'-'+String(number).padStart(2,'0')}}});
-    const features=originals.concat(s.features.features.filter(metro)).map(f=>{const row=s.districts[f.properties.map_id];return {...f,properties:{...f.properties,estimated:!!row,firstRoundBloc:row?.first_bloc||'unknown',round2:{estimated:!!row?.estimated,winner_bloc:row?.runoff_bloc||'unknown'}}}});
+    const names=['Extrême gauche','Gauche','Centre','Droite républicaine','Extrême droite'],key=['lfi','left','centre','right','far_right'][partisanChoice],s=data.scenarios[key],official=data.scenarios.other,changed=new Set(s.changed_departments),reverted=new Set();
+    // Restore official geometry and outcome rows where this scenario made no map or seat gain.
+    for(const feature of CURRENT.features.filter(metro)){
+      const dept=departmentCode(feature);
+      if(!changed.has(dept)||departmentScenarioBlocSeats(s,dept,key)===0)reverted.add(dept);
+    }
+    const originals=CURRENT.features.filter(f=>metro(f)&&reverted.has(departmentCode(f))).map(f=>{const dep=departmentCode(f),number=localDistrictNumber(f.properties);return {...f,properties:{...f.properties,map_id:dep+'-'+String(number).padStart(2,'0')}}});
+    const scenarioFeatures=s.features.features.filter(f=>metro(f)&&!reverted.has(departmentCode(f)));
+    const displayDistricts={...s.districts};
+    for(const mapId of Object.keys(displayDistricts))if(reverted.has(mapId.slice(0,mapId.lastIndexOf('-'))))delete displayDistricts[mapId];
+    for(const [mapId,row] of Object.entries(official.districts))if(reverted.has(mapId.slice(0,mapId.lastIndexOf('-'))))displayDistricts[mapId]=row;
+    const displaySeatProjection={...s.seat_projection};
+    for(const bloc of Object.keys(displaySeatProjection))displaySeatProjection[bloc]={...displaySeatProjection[bloc],representative:Object.values(displayDistricts).filter(row=>row.estimated&&row.runoff_bloc===bloc).length};
+    PARTISAN_DISPLAY={...s,key,districts:displayDistricts,seat_projection:displaySeatProjection,reverted_departments:reverted};
+    const features=originals.concat(scenarioFeatures).map(f=>{const row=displayDistricts[f.properties.map_id];return {...f,properties:{...f.properties,estimated:!!row,firstRoundBloc:row?.first_bloc||'unknown',round2:{estimated:!!row?.estimated,winner_bloc:row?.runoff_bloc||'unknown'}}}});
     proposalLayer=L.geoJSON({type:'FeatureCollection',features},{style:()=>({color:'#504735',weight:.48,fillColor:'#ded4bd',fillOpacity:.94}),onEachFeature:(feature,layer)=>{layer.bindTooltip(tooltipContent(feature.properties,true),{sticky:true,direction:'top',offset:[0,-5]});layer.on('click',event=>handleDistrictClick(event,feature))}}).addTo(map);
     const sliderWasHidden=$('#partisan-control').hidden;
     proposalVisible=true;viewMode='partisan';$('#view-today').setAttribute('aria-pressed','false');$('#view-tomorrow').setAttribute('aria-pressed','false');$('#view-partisan').setAttribute('aria-pressed','true');$('#partisan-control').hidden=false;if(sliderWasHidden)map.invalidateSize({pan:false});$('#partisan-slider').setAttribute('aria-valuetext',names[partisanChoice]);document.title='La carte fait loi · Partisane';loadDepartmentMapNote();
@@ -153,7 +165,7 @@ function renderHemicycle(){
     for(const seat of layout.seats){const deputy=byPlace.get(Number(seat.place));if(deputy)add(family(deputy.group).id,seat);else if(vacancies>0){add('vacant',seat);vacancies--}}
     for(const [bloc,seats] of paths){const f=FAMILY_DEFS.find(f=>f.id===bloc);assemblyGroups.set(bloc,{color:f?.color||'#d4c8b1',label:f?.label||'Sièges vacants',detail:fmtNum(seats.length)+' '+(bloc==='vacant'?'sièges vacants':'sièges actuels')})}
   }else{
-    const estimates=viewMode==='partisan'?PARTISAN.scenarios[current?'other':['lfi','left','centre','right','far_right'][partisanChoice]].seat_projection:(PROJECTION.round_two?.seat_projection||{}),ordered=seatsLeftToRight(layout).slice(0,577);let index=0;
+    const estimates=viewMode==='partisan'?(current?PARTISAN.scenarios.other.seat_projection:(PARTISAN_DISPLAY?.seat_projection||PARTISAN.scenarios[['lfi','left','centre','right','far_right'][partisanChoice]].seat_projection)):(PROJECTION.round_two?.seat_projection||{}),ordered=seatsLeftToRight(layout).slice(0,577);let index=0;
     for(const bloc of ['lfi','left','centre','right','far_right','other']){
       const row=estimates[bloc];if(!row)continue;
       const count=Math.round((simulated?row.representative:row.seats)||0);for(let i=0;i<count&&index<ordered.length;i++)add(bloc,ordered[index++]);
@@ -224,6 +236,11 @@ function activeDepartmentDistance(){
   if(!DEPARTMENT_DISTANCES)return null;
   return viewMode==='neutral'?DEPARTMENT_DISTANCES.maps?.neutral:DEPARTMENT_DISTANCES.partisan?.[['lfi','left','centre','right','far_right'][partisanChoice]];
 }
+function departmentScenarioBlocSeats(scenario,department,bloc){
+  if(!scenario?.districts)return null;
+  return Object.entries(scenario.districts).reduce((count,[mapId,row])=>
+    count+(mapId.startsWith(department+'-')&&row.estimated&&row.runoff_bloc===bloc?1:0),0);
+}
 function renderDepartmentMapNote(){
   const panel=$('#map-distance-panel');
   const isProposal=proposalVisible&&(viewMode==='neutral'||viewMode==='partisan');
@@ -235,7 +252,26 @@ function renderDepartmentMapNote(){
   const currentCount=currentDepartmentCount(selectedDepartment),proposedCount=visibleProposalDepartmentCount(selectedDepartment);
   $('#map-distance-department-name').textContent=name;
   $('#map-distance-seat-count').textContent=currentCount+' siège'+(currentCount===1?'':'s')+' aujourd’hui · '+proposedCount+' proposé'+(proposedCount===1?'':'s');
-  $('#map-distance-department-score').textContent=row?'Moins remanié que '+row.closer_than_percent+' % des départements':data?'Classement non disponible':'Calcul…';
+  const gain=$('#map-distance-bloc-gain');
+  gain.hidden=viewMode!=='partisan';
+  if(!gain.hidden){
+    const bloc=['lfi','left','centre','right','far_right'][partisanChoice],label=({lfi:'l’Extrême gauche',left:'la Gauche',centre:'le Centre',right:'la Droite républicaine',far_right:'l’Extrême droite'})[bloc];
+    const scenarios=PARTISAN?.scenarios,scenario=scenarios?.[bloc],display=PARTISAN_DISPLAY?.key===bloc?PARTISAN_DISPLAY:null,originalProposed=departmentScenarioBlocSeats(scenario,selectedDepartment,bloc),proposed=departmentScenarioBlocSeats(display||scenario,selectedDepartment,bloc),official=departmentScenarioBlocSeats(scenarios?.other,selectedDepartment,bloc),reverted=display?.reverted_departments.has(selectedDepartment);
+    gain.style.setProperty('--bloc-color',family(bloc).color);
+    if(!scenario||!Array.isArray(scenario.changed_departments)||proposed===null||official===null)gain.textContent='Projection des sièges indisponible';
+    else if(reverted&&scenario.changed_departments.includes(selectedDepartment)&&originalProposed===0)gain.textContent='Aucun siège estimé pour '+label+' sur la carte remaniée · découpage et résultats officiels rétablis';
+    else if(reverted)gain.textContent='Département non remanié · découpage et résultats officiels conservés';
+    else{
+      const delta=proposed-official,change=delta>0?'+'+delta:'−'+Math.abs(delta),plural=Math.abs(delta)===1?'':'s';
+      if(proposed===0)gain.textContent='Aucun siège pour '+label+' dans ce tirage représentatif · 0 contre '+official+' sur la carte officielle';
+      else if(delta===0)gain.textContent='Aucun gain pour '+label+' dans ce tirage · '+proposed+' siège'+(proposed===1?'':'s')+' sur les deux cartes';
+      else gain.textContent=change+' siège'+plural+' estimé'+plural+' pour '+label;
+    }
+  }
+  const reverted=viewMode==='partisan'&&PARTISAN_DISPLAY?.reverted_departments.has(selectedDepartment);
+  const score=$('#map-distance-department-score');
+  score.hidden=!!reverted;
+  if(!reverted)score.textContent=row?'Moins remanié que '+row.closer_than_percent+' % des départements':data?'Classement non disponible':'Calcul…';
 }
 function renderDepartmentDistanceCard(unavailable=false){
   const grid=$('#territory-grid');let card=$('#department-distance-card');
