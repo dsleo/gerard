@@ -10,8 +10,6 @@ async function renderMethod() {
   try {
     const data = await window.REDISTRICTING_DATA['projection-2026'];
     const round = data.round_two, validation = round.validation;
-    const draft = data.run_summary;
-    $('#draft-scope').textContent = fmt(draft.generated_districts) + ' circonscriptions sont générées dans ' + fmt(draft.generated_departments) + ' départements ; ' + fmt(draft.carry_forward_districts) + ' restent inchangées dans les ' + fmt(draft.carry_forward_departments) + ' autres. Le périmètre départemental compte ' + fmt(draft.departmental_districts) + ' sièges, auxquels s’ajoutent 19 sièges hors de ce périmètre, pour un total de 577.';
     $('#validation-stats').innerHTML = '<div><strong>' + pct(validation.bloc_winner_match_rate) + '</strong><span>de gagnants de bloc retrouvés</span></div><div><strong>' + fmt(validation.mean_absolute_vote_share_error * 100, 2) + ' points</strong><span>d’erreur absolue moyenne</span></div><div><strong>' + fmt(validation.held_out_predictions) + '</strong><span>duels historiques testés</span></div>';
     const bars = (row, color) => row ? '<div class="comparison-bars" style="--bloc-color:' + color + '"><div class="comparison-bar"><i style="--share:' + row.vote_share * 100 + '"></i><span>' + pct(row.vote_share) + '</span></div><div class="comparison-bar seats"><i style="--share:' + row.seat_share * 100 + '"></i><span>' + pct(row.seat_share) + '</span></div></div>' : '—';
     $('#metric-table tbody').innerHTML = blocs.map(([id, label, color]) => {

@@ -369,7 +369,6 @@ async function start(){
     $('#recenter-map').addEventListener('click',recenterMap);$('#zoom-in').addEventListener('click',()=>map.zoomIn());$('#zoom-out').addEventListener('click',()=>map.zoomOut());
     $('#results-cue').addEventListener('click',event=>{event.preventDefault();$('#results').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});$('#results-title').setAttribute('tabindex','-1');$('#results-title').focus({preventScroll:true})});
     $('#view-partisan').addEventListener('click',()=>explainFirst('partisan',selectPartisan));
-    $('#footer-partisan').addEventListener('click',event=>{event.preventDefault();explainFirst('partisan',()=>{showPartisan();$('#atlas').scrollIntoView()})});
     $('#partisan-slider').addEventListener('input',event=>{partisanChoice=Number(event.target.value);showPartisan()});
     $('#view-today').addEventListener('click',()=>{if(proposalVisible)resetCurrent()});
     $('#view-tomorrow').addEventListener('click',()=>explainFirst('neutral',selectNeutral));

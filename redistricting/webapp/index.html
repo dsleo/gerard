@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="vendor/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Special+Elite&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="atlas.css?v=20">
+<link rel="stylesheet" href="atlas.css?v=21">
 <link rel="stylesheet" href="scenarios.css?v=6">
 </head>
 <body>
@@ -42,16 +42,17 @@
 <div class="scenario-control" id="partisan-control" hidden><label for="partisan-slider">Carte favorable à</label><div class="scenario-slider-wrap"><input id="partisan-slider" type="range" min="0" max="4" step="1" value="0" aria-label="Scénario partisan" aria-valuetext="Extrême gauche"><div class="scenario-ticks" aria-hidden="true"><span>Extrême gauche</span><span>Gauche</span><span>Centre</span><span>Droite</span><span>Extrême droite</span></div></div></div>
 </div>
 <section class="results" id="results" aria-labelledby="results-title" hidden>
-<div class="results-head"><div><div class="results-kicker">Équilibre et limites territoriales</div><h2 id="results-title">Une carte plus équilibrée ? </h2></div></div>
-<div class="territory-grid" id="territory-grid"></div>
-<section class="mmd-section" aria-labelledby="mmd-title"><h3 id="mmd-title">Comment la répartition des voix change ?</h3><p class="mmd-intro">Des voix réparties partout, ou concentrées dans quelques bastions ? <button class="info-button" id="mmd-info" type="button" aria-label="Comprendre la répartition des voix" data-tooltip="Comprendre cet indicateur" aria-describedby="info-tooltip" aria-haspopup="dialog" aria-controls="mmd-dialog"><span class="info-glyph" aria-hidden="true">i</span></button></p><div class="mmd-grid" id="mmd-grid" aria-label="Variation du MMD par bloc, en points"></div></section>
 <section class="assembly-section" aria-labelledby="round2-title"><div class="round2-head"><div class="section-title"><h3 id="round2-title">Second tour</h3><button class="info-button" id="round2-info" type="button" aria-label="Comment estimer le second tour ?" data-tooltip="Comment le second tour est estimé" aria-describedby="info-tooltip" aria-haspopup="dialog" aria-controls="round2-dialog"><span class="info-glyph" aria-hidden="true">i</span></button></div></div>
 <div class="round2-assembly"><svg id="hemicycle" viewBox="0 0 237 164" role="group" aria-label="Projection des sièges par bloc"></svg><div class="assembly-tooltip" id="assembly-tooltip" role="status" aria-live="polite" hidden></div></div>
 <div class="assembly-controls"><div class="slide-switch assembly-switch" id="assembly-switch" role="group" aria-label="Comparer les hémicycles"><span class="slide-thumb" aria-hidden="true"></span><button id="assembly-current" type="button" aria-pressed="false">Assemblée actuelle</button><button id="assembly-projected" type="button" aria-pressed="true">Projection</button></div></div>
 </section>
+<section class="mmd-section" aria-labelledby="mmd-title"><h3 id="mmd-title">Comment la répartition des voix change ?</h3><p class="mmd-intro">Des voix réparties partout, ou concentrées dans quelques bastions ? <button class="info-button" id="mmd-info" type="button" aria-label="Comprendre la répartition des voix" data-tooltip="Comprendre cet indicateur" aria-describedby="info-tooltip" aria-haspopup="dialog" aria-controls="mmd-dialog"><span class="info-glyph" aria-hidden="true">i</span></button></p><div class="mmd-grid" id="mmd-grid" aria-label="Variation du MMD par bloc, en points"></div></section>
+<div class="results-head"><div><div class="results-kicker">Équilibre et limites territoriales</div><h2 id="results-title">Une carte plus équilibrée ? </h2></div></div>
+<div class="territory-grid" id="territory-grid"></div>
+
 
 </section>
-<footer class="app-footer"><a class="footer-brand" href="index.html">La carte fait loi<span>Un autre découpage, les mêmes voix.</span></a><nav aria-label="À propos du projet"><a href="#atlas" id="footer-partisan">Cartes partisanes</a><a href="#atlas" id="replay-tour">Faire le tour</a><a href="method.html">Comment ça marche <span aria-hidden="true">↗</span></a></nav></footer>
+<footer class="app-footer"><a class="footer-brand" href="index.html">La carte fait loi<span>Un autre découpage, les mêmes voix.</span></a><nav aria-label="À propos du projet"><a href="#atlas" id="replay-tour">Faire le tour</a><a href="method.html">Comment ça marche</a><a href="https://twitter.com/dsleo">Contact · @dsleo</a></nav></footer>
 
 <dialog class="info-dialog" id="mmd-dialog" aria-labelledby="mmd-dialog-title">
 <form method="dialog"><button class="dialog-close" aria-label="Fermer la formule du MMD" autofocus>×</button></form>
@@ -90,6 +91,6 @@
 </section>
 </div>
 <script src="vendor/leaflet.js"></script>
-<script src="atlas.js?v=44"></script>
+<script src="atlas.js?v=45"></script>
 </body>
 </html>

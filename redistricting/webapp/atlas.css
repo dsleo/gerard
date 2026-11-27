@@ -170,7 +170,7 @@ button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var
 .recom-strip figure{margin:0;min-width:0}.recom-diagram{display:block;width:100%;height:auto}
 .recom-strip figcaption{padding:6px 2px;font:12px/1.6 var(--serif)}.recom-strip figcaption b{display:block;font-size:12px;color:#3c514d}.recom-strip figcaption span{display:block;margin-top:5px;font-size:11px;color:#82765f}
 .reference-link{font:11px var(--mono);vertical-align:super;text-decoration:none}
-.criterion-block{margin:30px 0;padding-top:5px}.criterion-block+.criterion-block{border-top:1px dotted #b4a68d;padding-top:20px}
+.guide-page .guide-chapter h3.composite-title{font:700 22px/1.45 var(--serif);margin:34px 0 12px}.criterion-block{margin:30px 0;padding-top:5px}.criterion-block+.criterion-block{border-top:1px dotted #b4a68d;padding-top:20px}
 .guide-two-tours{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin:26px 0;border-top:1px solid #b4a68d;border-bottom:1px solid #b4a68d;padding:20px 0}
 .guide-two-tours span{font:10px var(--mono);color:#82765f;text-transform:uppercase}.guide-page .guide-two-tours h3{margin:8px 0}.guide-page .guide-two-tours p{font-size:13px;margin:0}
 .limits-list{margin-top:30px}.limits-list>div{padding:0 0 15px 18px;border-left:1px solid #b4a68d}.guide-page .limits-list h3{margin-top:18px}.guide-page .limits-list p{font-size:13px}

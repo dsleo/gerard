@@ -55,7 +55,7 @@ with TemporaryDirectory() as temp:
             page.evaluate("map.fire('click')")
             assert page.evaluate("selectedDepartment === ''")
             page.goto(f'http://127.0.0.1:{server.server_port}/gerard/method.html', wait_until='networkidle')
-            assert page.locator('#draft-scope').inner_text()
+            assert page.locator('#validation-stats').inner_text()
             assert not errors, errors
             failed = browser.new_page()
             failed.route('**/projection-2026.js*', lambda route: route.abort())
